@@ -1,0 +1,41 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <div class="card">
+    <h1 id="welcome">หน้าหลัก</h1>
+    <p id="role-info"></p>
+
+    <div class="actions">
+      <a href="/search-workers" class="btn btn-big">🔍 หาช่าง</a>
+      <a href="/become-worker" class="btn btn-big success" id="btn-becomeworker">📝 สมัครเป็นช่าง</a>
+      <a href="/profile" class="btn btn-big secondary">👤 โปรไฟล์ของฉัน</a>
+    </div>
+  </div>
+
+  <div class="card" id="worker-info" style="display:none">
+    <h2>ข้อมูลช่างของคุณ</h2>
+    <p>บัตรรับงานคงเหลือ: <strong id="tickets">-</strong> ใบ</p>
+    <p>รับงานทั้งหมด: <strong id="total-jobs">-</strong> งาน</p>
+  </div>
+</div>
+
+<script>
+(async () => {
+  const user = getUser();
+  if (!user) { window.location.href = '/login'; return; }
+
+  document.getElementById('welcome').textContent = `สวัสดี ${user.user_name}!`;
+  document.getElementById('role-info').textContent = `บทบาท: ${user.user_role}`;
+
+  // ถ้าเป็น worker -> ซ่อนปุ่มสมัครเป็นช่าง
+  if (user.user_role === 'worker' || user.user_role === 'admin') {
+    document.getElementById('btn-becomeworker').style.display = 'none';
+    // TODO: GET /api/workers/me เพื่อดู tickets - ตอนนี้ยังไม่มี endpoint
+    document.getElementById('worker-info').style.display = '';
+    document.getElementById('tickets').textContent = '(รอ endpoint GET /api/workers/me)';
+  }
+})();
+</script>
+
+<%- include('partials/footer') %>

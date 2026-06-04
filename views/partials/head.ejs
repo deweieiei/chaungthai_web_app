@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - ChaungThai</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    // API base URL (server-side ใส่ให้)
+    window.API_BASE_URL = '<%= API_BASE_URL %>';
+
+    // helper: ดึง token จาก localStorage
+    window.getToken = () => localStorage.getItem('chaungthai_token');
+    window.setToken = (t) => localStorage.setItem('chaungthai_token', t);
+    window.clearToken = () => {
+      localStorage.removeItem('chaungthai_token');
+      localStorage.removeItem('chaungthai_user');
+    };
+    window.getUser = () => {
+      const u = localStorage.getItem('chaungthai_user');
+      return u ? JSON.parse(u) : null;
+    };
+    window.setUser = (u) => localStorage.setItem('chaungthai_user', JSON.stringify(u));
+
+    // helper: fetch + handle JSON + auto-attach token ถ้ามี
+    window.apiCall = async (path, options = {}) => {
+      const opts = { ...options };
+      opts.headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+      const token = window.getToken();
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+      const res = await fetch(window.API_BASE_URL + path, opts);
+      let data = null;
+      try { data = await res.json(); } catch (e) { /* no body */ }
+      return { ok: res.ok, status: res.status, data };
+    };
+  </script>
+</head>
+<body>

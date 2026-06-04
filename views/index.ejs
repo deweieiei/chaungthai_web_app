@@ -1,0 +1,46 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <div class="card">
+    <h1>ChaungThai — แพลตฟอร์มจับคู่ช่าง</h1>
+    <p>หาช่างที่ใช่ ในพื้นที่ใกล้บ้าน หรือสมัครเป็นช่างเพื่อรับงาน</p>
+    <div class="actions">
+      <a href="/register" class="btn btn-big">สมัครสมาชิก</a>
+      <a href="/login" class="btn btn-big secondary">เข้าสู่ระบบ</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ภาพรวม</h2>
+    <ul>
+      <li>15 หมวด / 57 สาขา / 189 สกิล</li>
+      <li>ครอบคลุม 77 จังหวัด / 930 อำเภอ / 7,452 ตำบล</li>
+      <li>ช่างที่สมัครได้บัตรรับงาน 25 ใบ</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Debug — สถานะ API</h2>
+    <button class="btn" onclick="checkApi()">เช็คสถานะ API</button>
+    <pre class="dbg" id="api-status">(ยังไม่ได้เช็ค)</pre>
+  </div>
+</div>
+
+<script>
+  // auto-redirect ถ้า login แล้ว
+  if (getUser()) window.location.href = '/home';
+
+  async function checkApi() {
+    const out = document.getElementById('api-status');
+    out.textContent = 'กำลังเช็ค...';
+    try {
+      const { ok, status, data } = await apiCall('/health');
+      out.textContent = `HTTP ${status}\n` + JSON.stringify(data, null, 2);
+    } catch (e) {
+      out.textContent = 'ERROR: ' + e.message;
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

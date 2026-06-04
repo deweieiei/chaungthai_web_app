@@ -1,0 +1,99 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <div class="card">
+    <h1>สมัครเป็นช่าง</h1>
+    <div class="alert info">
+      หลังสมัคร คุณจะได้รับ <strong>บัตรรับงาน 25 ใบ</strong> สำหรับใช้รับงาน
+    </div>
+
+    <form onsubmit="doBecomeWorker(event)">
+      <label>ประวัติ / ประสบการณ์ / ผลงาน</label>
+      <textarea name="worker_resume" placeholder="เล่าประสบการณ์ของคุณสั้นๆ"></textarea>
+
+      <label>เลือกสกิลที่คุณทำได้ (เลือกได้หลายอัน) <small class="hint">*</small></label>
+      <div class="skill-tree" id="skill-tree">กำลังโหลด...</div>
+
+      <div class="actions">
+        <button type="submit" class="btn success btn-big">สมัครเป็นช่าง</button>
+      </div>
+    </form>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<script>
+(async () => {
+  const user = getUser();
+  if (!user) { window.location.href = '/login'; return; }
+  if (user.user_role === 'worker' || user.user_role === 'admin') {
+    document.getElementById('msg').innerHTML = '<div class="alert info">คุณเป็นช่างอยู่แล้ว</div>';
+    document.querySelector('form').style.display = 'none';
+    return;
+  }
+
+  // โหลด skills tree
+  const { ok, data } = await apiCall('/skills');
+  if (!ok) {
+    document.getElementById('skill-tree').textContent = 'โหลดสกิลไม่ได้';
+    return;
+  }
+  const tree = document.getElementById('skill-tree');
+  tree.innerHTML = '';
+  for (const cat of data.categories) {
+    const catEl = document.createElement('div');
+    catEl.className = 'skill-cat';
+    catEl.textContent = '📁 ' + cat.skill_category_name_th;
+    tree.appendChild(catEl);
+    for (const sub of cat.subcategories) {
+      const subEl = document.createElement('div');
+      subEl.className = 'skill-sub';
+      subEl.textContent = '📂 ' + sub.skill_subcategory_name_th;
+      tree.appendChild(subEl);
+      for (const sk of sub.skills) {
+        const item = document.createElement('div');
+        item.className = 'skill-item';
+        const label = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = sk.skill_id;
+        cb.name = 'skill';
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(' ' + sk.skill_name_th));
+        item.appendChild(label);
+        tree.appendChild(item);
+      }
+    }
+  }
+})();
+
+async function doBecomeWorker(e) {
+  e.preventDefault();
+  const resume = e.target.worker_resume.value.trim();
+  const skillIds = Array.from(document.querySelectorAll('input[name=skill]:checked')).map(x => Number(x.value));
+
+  if (skillIds.length === 0) {
+    document.getElementById('msg').innerHTML = '<div class="alert error">กรุณาเลือกสกิลอย่างน้อย 1 อัน</div>';
+    return;
+  }
+
+  const body = { skill_ids: skillIds };
+  if (resume) body.worker_resume = resume;
+
+  const { ok, status, data } = await apiCall('/workers', { method: 'POST', body });
+  const msg = document.getElementById('msg');
+  if (ok) {
+    // update user_role ใน localStorage
+    const u = getUser();
+    u.user_role = 'worker';
+    setUser(u);
+    msg.innerHTML = '<div class="alert success">' + data.message + ' — บัตรรับงาน ' + data.worker_job_tickets + ' ใบ, ' + data.skill_count + ' สกิล!</div>';
+    setTimeout(() => window.location.href = '/home', 2000);
+  } else {
+    msg.innerHTML = '<div class="alert error">' + (data?.error || 'ผิดพลาด') + '</div>';
+  }
+}
+</script>
+
+<%- include('partials/footer') %>
