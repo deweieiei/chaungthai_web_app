@@ -4,6 +4,21 @@
 <div class="container">
   <div class="card">
     <h1>โปรไฟล์ของฉัน</h1>
+
+    <!-- รูปโปรไฟล์ -->
+    <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
+      <img id="avatar-preview" src="" alt="avatar"
+           style="width:120px; height:120px; border-radius:50%; object-fit:cover; background:#eee; border:2px solid #ddd;">
+      <div>
+        <label style="margin-top:0;">รูปโปรไฟล์</label>
+        <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" onchange="onAvatarChange(event)">
+        <small class="hint">jpg / png / webp, ไม่เกิน 5MB</small>
+        <div id="upload-msg" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <hr style="margin: 16px 0;">
+
     <form onsubmit="doUpdate(event)">
       <label>ชื่อ</label>
       <input name="user_name" id="f_user_name">
@@ -88,6 +103,52 @@ function fillForm(u) {
     const el = document.getElementById('f_' + k);
     if (el) el.value = (k === 'user_birthday' && u[k]) ? u[k].substring(0,10) : (u[k] || '');
   });
+  // รูปโปรไฟล์
+  const img = document.getElementById('avatar-preview');
+  if (u.user_image) {
+    // user_image อาจเป็น "/api/uploads/..." (relative) หรือ URL เต็ม
+    if (u.user_image.startsWith('http')) img.src = u.user_image;
+    else img.src = window.API_BASE_URL.replace(/\/api$/, '') + u.user_image;
+  } else {
+    // placeholder transparent
+    img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23e0e0e0"/><text x="50%" y="55%" text-anchor="middle" font-size="40" fill="%23999">?</text></svg>';
+  }
+}
+
+async function onAvatarChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const msg = document.getElementById('upload-msg');
+  const user = getUser();
+
+  // preview รูปก่อน upload
+  document.getElementById('avatar-preview').src = URL.createObjectURL(file);
+
+  msg.innerHTML = '<div class="alert info">กำลังอัปโหลด...</div>';
+
+  // multipart form
+  const fd = new FormData();
+  fd.append('image', file);
+
+  try {
+    const res = await fetch(window.API_BASE_URL + '/users/' + user.user_id + '/image', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+      body: fd,  // FormData -> browser ตั้ง Content-Type พร้อม boundary ให้
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      msg.innerHTML = '<div class="alert success">อัปโหลดสำเร็จ (' + Math.round((data.size_bytes || 0)/1024) + ' KB)</div>';
+      // refresh preview จาก URL ใหม่
+      currentUser.user_image = data.user_image;
+      fillForm(currentUser);
+    } else {
+      msg.innerHTML = '<div class="alert error">' + (data?.error || 'อัปโหลดผิดพลาด') + '</div>';
+    }
+  } catch (err) {
+    msg.innerHTML = '<div class="alert error">' + err.message + '</div>';
+  }
+  e.target.value = ''; // reset input
 }
 
 async function loadDistricts(provinceId, selectedId) {
