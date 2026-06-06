@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-header">
+  <%- include('../partials/header', { title: 'รายละเอียดช่าง', back: true }) %>
+  <div class="page-content" id="detail-content" data-worker-id="<%= workerId %>">
+    <div class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>
+  </div>
+</div>
+<%- include('../partials/foot', { pageScript: 'worker-detail' }) %>

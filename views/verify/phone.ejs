@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-header">
+  <%- include('../partials/header', { title: 'ยืนยันเบอร์โทร', back: true, backHref: '/profile' }) %>
+  <div class="page-content page-content--narrow">
+    <div class="text-center" style="margin-top: var(--space-md);">
+      <div style="font-size: 64px;" id="phone-icon">📱</div>
+      <h2 id="phone-title">เบอร์โทรของคุณ</h2>
+      <p class="text-muted" id="phone-display">-</p>
+    </div>
+    <div id="content-area" style="margin-top: var(--space-lg);"></div>
+  </div>
+</div>
+<%- include('../partials/foot', { pageScript: 'verify-phone' }) %>

@@ -1,0 +1,19 @@
+<%
+  // locals: activeTab — 'home' | 'search' | 'profile'
+  const tab = typeof activeTab !== 'undefined' ? activeTab : null;
+  function activeCls(name) { return name === tab ? ' bottom-nav__item--active' : ''; }
+%>
+<nav class="bottom-nav">
+  <a href="/home" class="bottom-nav__item<%= activeCls('home') %>">
+    <span class="bottom-nav__icon">🏠</span>
+    <span>หน้าหลัก</span>
+  </a>
+  <a href="/search-workers" class="bottom-nav__item<%= activeCls('search') %>">
+    <span class="bottom-nav__icon">🔍</span>
+    <span>หาช่าง</span>
+  </a>
+  <a href="/profile" class="bottom-nav__item<%= activeCls('profile') %>">
+    <span class="bottom-nav__icon">👤</span>
+    <span>โปรไฟล์</span>
+  </a>
+</nav>

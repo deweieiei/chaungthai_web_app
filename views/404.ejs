@@ -1,12 +1,14 @@
 <%- include('partials/head') %>
-<%- include('partials/nav') %>
-
-<div class="container">
-  <div class="card">
-    <h1>404 — ไม่พบหน้า</h1>
-    <p>หน้าที่คุณค้นหาไม่มีในระบบ</p>
-    <a href="/" class="btn">กลับหน้าแรก</a>
+<div class="app-shell">
+  <div class="page-content page-content--narrow" style="display: flex; flex-direction: column; justify-content: center; min-height: 100dvh; text-align: center;">
+    <div style="font-size: 96px; color: var(--primary);">🚫</div>
+    <h1>ไม่พบหน้านี้</h1>
+    <p class="text-muted">หน้า <code><%= path %></code> ไม่มีในระบบ</p>
+    <div style="margin-top: var(--space-lg);">
+      <a href="/home" class="btn btn--primary btn--block">กลับหน้าหลัก</a>
+      <a href="javascript:history.back()" class="btn btn--ghost btn--block" style="margin-top: 8px;">ย้อนกลับ</a>
+    </div>
   </div>
 </div>
-
-<%- include('partials/footer') %>
+</body>
+</html>

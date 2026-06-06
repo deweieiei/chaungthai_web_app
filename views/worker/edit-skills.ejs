@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-header" style="display: flex; flex-direction: column; min-height: 100dvh;">
+  <%- include('../partials/header', { title: 'แก้ไขสกิลของฉัน', back: true, backHref: '/profile' }) %>
+
+  <div id="loading-area" class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>
+  <div id="skill-mount" class="hidden" style="flex: 1;"></div>
+
+  <div id="submit-area" class="hidden" style="padding: var(--space-md); border-top: 1px solid var(--border); background: var(--bg);">
+    <div data-form-error></div>
+    <button type="button" class="btn btn--primary btn--block" id="submit-btn">บันทึก (0 สกิล)</button>
+  </div>
+</div>
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/ui.js"></script>
+<script src="/static/js/skill-tree.js"></script>
+<script src="/static/js/pages/edit-skills.js"></script>
+</body>
+</html>

@@ -1,41 +1,57 @@
 <%- include('partials/head') %>
-<%- include('partials/nav') %>
+<div class="app-shell app-shell--with-nav">
+  <div class="page-content">
+    <div class="hero">
+      <div class="hero__greeting">สวัสดี 👋</div>
+      <h2 class="hero__name" id="hero-name">ผู้ใช้</h2>
+      <div class="hero__sub">ยินดีต้อนรับสู่ ChaungThai</div>
+    </div>
 
-<div class="container">
-  <div class="card">
-    <h1 id="welcome">หน้าหลัก</h1>
-    <p id="role-info"></p>
+    <h3 class="section-title">ทำอะไรในวันนี้?</h3>
 
-    <div class="actions">
-      <a href="/search-workers" class="btn btn-big">🔍 หาช่าง</a>
-      <a href="/become-worker" class="btn btn-big success" id="btn-becomeworker">📝 สมัครเป็นช่าง</a>
-      <a href="/profile" class="btn btn-big secondary">👤 โปรไฟล์ของฉัน</a>
+    <a href="/search-workers" class="action-card">
+      <div class="action-card__icon">🔍</div>
+      <div class="action-card__main">
+        <h4 class="action-card__title">หาช่าง</h4>
+        <p class="action-card__sub">ค้นหาคนเก่งใกล้บ้านคุณ</p>
+      </div>
+      <div class="action-card__caret">›</div>
+    </a>
+
+    <a href="/become-worker" class="action-card" id="become-worker-card">
+      <div class="action-card__icon action-card__icon--success">📝</div>
+      <div class="action-card__main">
+        <h4 class="action-card__title">สมัครเป็นช่าง</h4>
+        <p class="action-card__sub">ลงทะเบียนรับงานในระบบ</p>
+      </div>
+      <div class="action-card__caret">›</div>
+    </a>
+
+    <a href="/worker/edit-skills" class="action-card hidden" id="edit-skills-card">
+      <div class="action-card__icon action-card__icon--info">🛠</div>
+      <div class="action-card__main">
+        <h4 class="action-card__title">แก้ไขสกิลของฉัน</h4>
+        <p class="action-card__sub">อัปเดตสกิลที่รับงาน</p>
+      </div>
+      <div class="action-card__caret">›</div>
+    </a>
+
+    <div id="worker-stats" class="hidden" style="margin-top: var(--space-md);">
+      <h3 class="section-title">ของฉัน</h3>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-box__icon">🎫</div>
+          <div class="stat-box__value" id="stat-tickets">-</div>
+          <div class="stat-box__label">บัตรคงเหลือ</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box__icon">✓</div>
+          <div class="stat-box__value" id="stat-jobs">-</div>
+          <div class="stat-box__label">งานที่รับ</div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="card" id="worker-info" style="display:none">
-    <h2>ข้อมูลช่างของคุณ</h2>
-    <p>บัตรรับงานคงเหลือ: <strong id="tickets">-</strong> ใบ</p>
-    <p>รับงานทั้งหมด: <strong id="total-jobs">-</strong> งาน</p>
-  </div>
+  <%- include('partials/bottom-nav', { activeTab: 'home' }) %>
 </div>
-
-<script>
-(async () => {
-  const user = getUser();
-  if (!user) { window.location.href = '/login'; return; }
-
-  document.getElementById('welcome').textContent = `สวัสดี ${user.user_name}!`;
-  document.getElementById('role-info').textContent = `บทบาท: ${user.user_role}`;
-
-  // ถ้าเป็น worker -> ซ่อนปุ่มสมัครเป็นช่าง
-  if (user.user_role === 'worker' || user.user_role === 'admin') {
-    document.getElementById('btn-becomeworker').style.display = 'none';
-    // TODO: GET /api/workers/me เพื่อดู tickets - ตอนนี้ยังไม่มี endpoint
-    document.getElementById('worker-info').style.display = '';
-    document.getElementById('tickets').textContent = '(รอ endpoint GET /api/workers/me)';
-  }
-})();
-</script>
-
-<%- include('partials/footer') %>
+<%- include('partials/foot', { pageScript: 'home' }) %>

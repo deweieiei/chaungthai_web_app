@@ -1,0 +1,16 @@
+<%- include('partials/head') %>
+<div class="app-shell">
+  <div class="page-content page-content--narrow" style="display: flex; flex-direction: column; justify-content: center; min-height: 100dvh; text-align: center;">
+    <div style="font-size: 96px; color: var(--danger);">⚠</div>
+    <h1>ระบบมีปัญหา</h1>
+    <p class="text-muted">กรุณาลองอีกครั้งในอีกสักครู่</p>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <pre style="background: var(--surface-alt); padding: 12px; border-radius: 8px; text-align: left; overflow: auto; font-size: 12px; margin-top: 16px;"><%= error %></pre>
+    <% } %>
+    <div style="margin-top: var(--space-lg);">
+      <a href="/home" class="btn btn--primary btn--block">กลับหน้าหลัก</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

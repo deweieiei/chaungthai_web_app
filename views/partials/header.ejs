@@ -1,0 +1,22 @@
+<%
+  // locals: title, back (boolean), backHref (optional), rightAction (HTML)
+  const showBack = typeof back !== 'undefined' && back;
+  const _backHref = typeof backHref !== 'undefined' ? backHref : null;
+%>
+<header class="app-header">
+  <% if (showBack) { %>
+    <% if (_backHref) { %>
+      <a href="<%= _backHref %>" class="app-header__back" aria-label="ย้อนกลับ">‹</a>
+    <% } else { %>
+      <button type="button" class="app-header__back" onclick="history.back()" aria-label="ย้อนกลับ">‹</button>
+    <% } %>
+  <% } else { %>
+    <span class="app-header__back" aria-hidden="true"></span>
+  <% } %>
+  <h1 class="app-header__title"><%= title %></h1>
+  <% if (typeof rightAction !== 'undefined' && rightAction) { %>
+    <%- rightAction %>
+  <% } else { %>
+    <span class="app-header__action" aria-hidden="true"></span>
+  <% } %>
+</header>

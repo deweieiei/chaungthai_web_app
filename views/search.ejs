@@ -1,147 +1,44 @@
 <%- include('partials/head') %>
-<%- include('partials/nav') %>
+<div class="app-shell app-shell--with-nav">
+  <div class="page-content">
+    <h2 style="margin-bottom: var(--space-md);">หาช่าง</h2>
 
-<div class="container">
-  <div class="card">
-    <h1>หาช่าง</h1>
-    <form onsubmit="doSearch(event)">
-      <label>เลือกสกิลที่ต้องการ <small class="hint">*</small></label>
-      <select name="skill_id" id="f_skill_id" required>
-        <option value="">-- กำลังโหลด --</option>
-      </select>
-
-      <label>จังหวัด</label>
-      <select name="province_id" id="f_province_id" onchange="onProvinceChange()">
-        <option value="">-- เลือกจังหวัด --</option>
-      </select>
-
-      <label>อำเภอ/เขต</label>
-      <select name="district_id" id="f_district_id" onchange="onDistrictChange()">
-        <option value="">-- เลือกอำเภอ --</option>
-      </select>
-
-      <label>ตำบล/แขวง</label>
-      <select name="subdistrict_id" id="f_subdistrict_id">
-        <option value="">-- เลือกตำบล --</option>
-      </select>
-
-      <label><input type="checkbox" name="auto_expand" id="auto_expand" checked> ขยายอัตโนมัติถ้าไม่เจอ (ตำบล → อำเภอ → จังหวัด)</label>
-
-      <div class="actions">
-        <button type="submit" class="btn">ค้นหา</button>
+    <div class="card">
+      <div class="field" style="margin-bottom: 12px;">
+        <label class="field__label" for="skill">สกิลที่ต้องการ *</label>
+        <select class="select" id="skill">
+          <option value="">กำลังโหลดสกิล...</option>
+        </select>
+        <div class="field__error" id="skill-error"></div>
       </div>
-    </form>
+
+      <div class="field">
+        <label class="field__label" for="province">จังหวัด *</label>
+        <select class="select" id="province"><option value="">กำลังโหลด...</option></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="district">อำเภอ/เขต</label>
+        <select class="select" id="district" disabled><option value="">เลือกจังหวัดก่อน</option></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="subdistrict">ตำบล/แขวง</label>
+        <select class="select" id="subdistrict" disabled><option value="">เลือกอำเภอก่อน</option></select>
+      </div>
+
+      <label class="switch">
+        <input type="checkbox" id="auto-expand" checked>
+        <span class="switch__track"></span>
+        <span class="switch__label">
+          <div class="switch__label-main">ขยายค้นหาอัตโนมัติ</div>
+          <div class="switch__label-sub">ไม่เจอในตำบล → ลองอำเภอ → จังหวัด</div>
+        </span>
+      </label>
+
+      <button class="btn btn--primary btn--block" id="search-btn" style="margin-top: var(--space-md);">🔍 ค้นหา</button>
+    </div>
+
+    <div id="results-area"></div>
   </div>
-
-  <div id="results"></div>
+  <%- include('partials/bottom-nav', { activeTab: 'search' }) %>
 </div>
-
-<script>
-(async () => {
-  // โหลด skills flat
-  const skillRes = await apiCall('/skills');
-  const sel = document.getElementById('f_skill_id');
-  sel.innerHTML = '<option value="">-- เลือกสกิล --</option>';
-  for (const cat of skillRes.data.categories) {
-    for (const sub of cat.subcategories) {
-      const optgroup = document.createElement('optgroup');
-      optgroup.label = cat.skill_category_name_th + ' / ' + sub.skill_subcategory_name_th;
-      for (const sk of sub.skills) {
-        const opt = document.createElement('option');
-        opt.value = sk.skill_id;
-        opt.textContent = sk.skill_name_th;
-        optgroup.appendChild(opt);
-      }
-      sel.appendChild(optgroup);
-    }
-  }
-
-  // โหลด provinces
-  const provRes = await apiCall('/locations/provinces');
-  const provSel = document.getElementById('f_province_id');
-  for (const p of provRes.data.provinces) {
-    const opt = document.createElement('option');
-    opt.value = p.province_id;
-    opt.textContent = p.province_name_th;
-    provSel.appendChild(opt);
-  }
-})();
-
-async function loadDistricts(provinceId) {
-  const sel = document.getElementById('f_district_id');
-  sel.innerHTML = '<option value="">-- เลือกอำเภอ --</option>';
-  const { data } = await apiCall('/locations/districts?province_id=' + provinceId);
-  for (const d of data.districts) {
-    const opt = document.createElement('option');
-    opt.value = d.district_id;
-    opt.textContent = d.district_name_th;
-    sel.appendChild(opt);
-  }
-}
-async function loadSubdistricts(districtId) {
-  const sel = document.getElementById('f_subdistrict_id');
-  sel.innerHTML = '<option value="">-- เลือกตำบล --</option>';
-  const { data } = await apiCall('/locations/subdistricts?district_id=' + districtId);
-  for (const s of data.subdistricts) {
-    const opt = document.createElement('option');
-    opt.value = s.subdistrict_id;
-    opt.textContent = s.subdistrict_name_th;
-    sel.appendChild(opt);
-  }
-}
-async function onProvinceChange() {
-  const pid = document.getElementById('f_province_id').value;
-  if (pid) await loadDistricts(pid);
-}
-async function onDistrictChange() {
-  const did = document.getElementById('f_district_id').value;
-  if (did) await loadSubdistricts(did);
-}
-
-async function doSearch(e) {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const params = new URLSearchParams();
-  for (const [k, v] of fd.entries()) {
-    if (v && k !== 'auto_expand') params.append(k, v);
-  }
-  if (document.getElementById('auto_expand').checked) params.append('auto_expand', 'true');
-
-  const out = document.getElementById('results');
-  out.innerHTML = '<div class="card">กำลังค้นหา...</div>';
-  const { ok, data } = await apiCall('/workers/search?' + params.toString());
-
-  if (!ok) {
-    out.innerHTML = '<div class="card"><div class="alert error">' + (data?.error || 'ผิดพลาด') + '</div></div>';
-    return;
-  }
-
-  let html = '<div class="card">';
-  html += '<h2>ผลการค้นหา</h2>';
-  html += '<p>matched_level: <strong>' + (data.matched_level || 'ไม่เจอ') + '</strong> | พบ ' + data.total + ' ช่าง</p>';
-
-  if (data.workers.length === 0) {
-    html += '<div class="alert info">ไม่พบช่างในพื้นที่ที่เลือก</div>';
-  }
-  for (const w of data.workers) {
-    html += '<div class="worker-card">';
-    html += '  <h3>' + (w.user_name || '') + ' ' + (w.user_lastname || '') + '</h3>';
-    html += '  <div class="meta">';
-    html += '    สกิล: <strong>' + w.skill_name_th + '</strong> | ';
-    html += '    บัตรรับงานเหลือ: ' + w.worker_job_tickets + ' ใบ | ';
-    html += '    รับงานทั้งหมด: ' + w.worker_total_jobs + ' งาน';
-    html += '  </div>';
-    html += '  <div class="meta">📍 ' +
-            [w.subdistrict_name_th, w.district_name_th, w.province_name_th].filter(Boolean).join(' / ');
-    if (w.user_address) html += ' (' + w.user_address + ')';
-    html += '  </div>';
-    if (w.user_phone) html += '  <div class="meta">📞 ' + w.user_phone + '</div>';
-    if (w.worker_resume) html += '  <div class="meta" style="margin-top:8px;">📝 ' + w.worker_resume + '</div>';
-    html += '</div>';
-  }
-  html += '</div>';
-  out.innerHTML = html;
-}
-</script>
-
-<%- include('partials/footer') %>
+<%- include('partials/foot', { pageScript: 'search' }) %>

@@ -1,0 +1,49 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-header">
+  <%- include('../partials/header', { title: 'สมัครสมาชิก', back: true, backHref: '/login' }) %>
+  <div class="page-content page-content--narrow">
+    <form id="register-form" novalidate>
+      <div data-form-error></div>
+
+      <div class="field">
+        <label class="field__label" for="name">ชื่อ *</label>
+        <input class="input" type="text" id="name" name="name" autocomplete="given-name">
+        <div class="field__error" id="name-error"></div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="lastname">นามสกุล</label>
+        <input class="input" type="text" id="lastname" name="lastname" autocomplete="family-name">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="email">อีเมล *</label>
+        <input class="input" type="email" id="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
+        <div class="field__error" id="email-error"></div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">รหัสผ่าน *</label>
+        <div class="input-group">
+          <input class="input" type="password" id="password" name="password" autocomplete="new-password">
+          <button type="button" class="input-group__trail" data-toggle-password aria-label="แสดงรหัสผ่าน">👁</button>
+        </div>
+        <span class="field__hint">อย่างน้อย 8 ตัวอักษร</span>
+        <div class="field__error" id="password-error"></div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="confirm">ยืนยันรหัสผ่าน *</label>
+        <input class="input" type="password" id="confirm" name="confirm" autocomplete="new-password">
+        <div class="field__error" id="confirm-error"></div>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block" style="margin-top: var(--space-md);">สมัครสมาชิก</button>
+    </form>
+
+    <div class="text-center text-muted" style="margin-top: var(--space-lg);">
+      มีบัญชีอยู่แล้ว? <a href="/login">เข้าสู่ระบบ</a>
+    </div>
+  </div>
+</div>
+<%- include('../partials/foot', { pageScript: 'register' }) %>

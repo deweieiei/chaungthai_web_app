@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-nav">
+  <div class="page-content" id="profile-content">
+    <div class="loading-block">
+      <div class="spinner"></div>
+      <div>กำลังโหลด...</div>
+    </div>
+  </div>
+  <%- include('../partials/bottom-nav', { activeTab: 'profile' }) %>
+</div>
+<%- include('../partials/foot', { pageScript: 'profile' }) %>

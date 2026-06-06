@@ -1,0 +1,54 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-header">
+  <%- include('../partials/header', { title: 'แก้ไขข้อมูล', back: true, backHref: '/profile' }) %>
+  <div class="page-content">
+    <form id="edit-form" novalidate>
+      <div data-form-error></div>
+
+      <h3 class="section-title">ข้อมูลส่วนตัว</h3>
+      <div class="field">
+        <label class="field__label" for="name">ชื่อ *</label>
+        <input class="input" type="text" id="name">
+        <div class="field__error" id="name-error"></div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="lastname">นามสกุล</label>
+        <input class="input" type="text" id="lastname">
+      </div>
+      <div class="field">
+        <label class="field__label" for="phone">เบอร์โทรศัพท์</label>
+        <input class="input" type="tel" id="phone" inputmode="tel">
+        <div class="field__error" id="phone-error"></div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="birthday">วันเกิด</label>
+        <input class="input" type="date" id="birthday" max="2099-12-31">
+      </div>
+      <div class="field">
+        <label class="field__label" for="bio">แนะนำตัว (bio)</label>
+        <textarea class="textarea" id="bio" rows="3" placeholder="เล่าเกี่ยวกับตัวคุณสั้นๆ"></textarea>
+      </div>
+
+      <h3 class="section-title">ที่อยู่</h3>
+      <div class="field">
+        <label class="field__label" for="province">จังหวัด</label>
+        <select class="select" id="province"><option value="">-- เลือกจังหวัด --</option></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="district">อำเภอ/เขต</label>
+        <select class="select" id="district" disabled><option value="">เลือกจังหวัดก่อน</option></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="subdistrict">ตำบล/แขวง</label>
+        <select class="select" id="subdistrict" disabled><option value="">เลือกอำเภอก่อน</option></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="address">ที่อยู่ (บ้านเลขที่ ซอย ฯลฯ)</label>
+        <textarea class="textarea" id="address" rows="2"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block" style="margin-top: var(--space-lg);">บันทึก</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/foot', { pageScript: 'profile-edit' }) %>

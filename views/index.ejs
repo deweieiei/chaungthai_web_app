@@ -1,46 +1,22 @@
 <%- include('partials/head') %>
-<%- include('partials/nav') %>
-
-<div class="container">
-  <div class="card">
-    <h1>ChaungThai — แพลตฟอร์มจับคู่ช่าง</h1>
-    <p>หาช่างที่ใช่ ในพื้นที่ใกล้บ้าน หรือสมัครเป็นช่างเพื่อรับงาน</p>
-    <div class="actions">
-      <a href="/register" class="btn btn-big">สมัครสมาชิก</a>
-      <a href="/login" class="btn btn-big secondary">เข้าสู่ระบบ</a>
+<div class="app-shell">
+  <div class="page-content page-content--narrow" style="display:flex; flex-direction:column; justify-content:center; min-height:100dvh;">
+    <div class="text-center">
+      <div class="brand-mark brand-mark--lg">ช.</div>
+      <h1 style="color: var(--primary); font-weight: 900;">ChaungThai</h1>
+      <p class="text-muted">จับคู่คนเก่งกับคนมีปัญหา<br>ในราคาที่จ่ายไหว</p>
+    </div>
+    <div style="margin-top: var(--space-xl);">
+      <a href="/login" class="btn btn--primary btn--block">เข้าสู่ระบบ</a>
+      <div style="height: var(--space-sm);"></div>
+      <a href="/register" class="btn btn--outline btn--block">สมัครสมาชิก</a>
     </div>
   </div>
-
-  <div class="card">
-    <h2>ภาพรวม</h2>
-    <ul>
-      <li>15 หมวด / 57 สาขา / 189 สกิล</li>
-      <li>ครอบคลุม 77 จังหวัด / 930 อำเภอ / 7,452 ตำบล</li>
-      <li>ช่างที่สมัครได้บัตรรับงาน 25 ใบ</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Debug — สถานะ API</h2>
-    <button class="btn" onclick="checkApi()">เช็คสถานะ API</button>
-    <pre class="dbg" id="api-status">(ยังไม่ได้เช็ค)</pre>
-  </div>
 </div>
-
+<script src="/static/js/auth.js"></script>
 <script>
-  // auto-redirect ถ้า login แล้ว
-  if (getUser()) window.location.href = '/home';
-
-  async function checkApi() {
-    const out = document.getElementById('api-status');
-    out.textContent = 'กำลังเช็ค...';
-    try {
-      const { ok, status, data } = await apiCall('/health');
-      out.textContent = `HTTP ${status}\n` + JSON.stringify(data, null, 2);
-    } catch (e) {
-      out.textContent = 'ERROR: ' + e.message;
-    }
-  }
+  // ถ้า login แล้ว → ไป /home เลย
+  if (window.Auth && window.Auth.isLoggedIn()) location.replace('/home');
 </script>
-
-<%- include('partials/footer') %>
+</body>
+</html>

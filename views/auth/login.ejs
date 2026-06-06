@@ -1,0 +1,44 @@
+<%- include('../partials/head') %>
+<div class="app-shell">
+  <div class="page-content page-content--narrow">
+    <div class="text-center" style="margin-top: var(--space-xl);">
+      <div class="brand-mark">ช.</div>
+      <h1>เข้าสู่ระบบ</h1>
+      <p class="text-muted">ยินดีต้อนรับสู่ ChaungThai</p>
+    </div>
+
+    <form id="login-form" novalidate style="margin-top: var(--space-xl);">
+      <div data-form-error></div>
+
+      <div class="field">
+        <label class="field__label" for="email">อีเมล</label>
+        <div class="input-group">
+          <span class="input-group__icon">✉</span>
+          <input class="input" type="email" id="email" name="email" autocomplete="email" inputmode="email">
+        </div>
+        <div class="field__error" id="email-error"></div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">รหัสผ่าน</label>
+        <div class="input-group">
+          <span class="input-group__icon">🔒</span>
+          <input class="input" type="password" id="password" name="password" autocomplete="current-password">
+          <button type="button" class="input-group__trail" data-toggle-password aria-label="แสดงรหัสผ่าน">👁</button>
+        </div>
+        <div class="field__error" id="password-error"></div>
+      </div>
+
+      <div style="text-align: right; margin-top: -8px; margin-bottom: var(--space-md);">
+        <a href="/forgot-password" class="text-small">ลืมรหัสผ่าน?</a>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block">เข้าสู่ระบบ</button>
+    </form>
+
+    <div class="text-center text-muted" style="margin-top: var(--space-lg);">
+      ยังไม่มีบัญชี? <a href="/register">สมัครสมาชิก</a>
+    </div>
+  </div>
+</div>
+<%- include('../partials/foot', { pageScript: 'login' }) %>

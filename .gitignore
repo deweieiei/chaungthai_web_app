@@ -5,6 +5,7 @@ npm-debug.log*
 # Environment
 .env
 .env.local
+.env.*.local
 
 # Logs
 logs/
@@ -17,6 +18,10 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+*.swp
 
 # PM2
 .pm2/
+
+# Build
+dist/
