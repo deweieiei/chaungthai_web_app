@@ -1,43 +1,62 @@
 /* ============================================================
-   ChaungThai Theme — ขาว + #970000 + Sarabun
-   Mobile-first, รองรับมือถือเป็นหลัก
+   ChaungThai Theme v0.3 — Premium red & white
+   - Mobile-first พร้อม desktop responsive
+   - เน้นความสะอาด, นุ่ม, ใช้งานง่าย
+   - รองรับ safe-area, dark mode (อนาคต), reduced motion
 ============================================================ */
 
 :root {
+  /* ---- Brand ---- */
   --primary: #970000;
   --primary-dark: #6b0000;
+  --primary-darker: #4a0000;
   --primary-light: #b83232;
   --primary-soft: rgba(151, 0, 0, 0.08);
-  --primary-tint: rgba(151, 0, 0, 0.12);
+  --primary-tint: rgba(151, 0, 0, 0.14);
+  --primary-glow: rgba(151, 0, 0, 0.22);
 
+  --gradient-primary: linear-gradient(135deg, #b00000 0%, #970000 45%, #6b0000 100%);
+  --gradient-hero: linear-gradient(135deg, #970000 0%, #6b0000 60%, #4a0000 100%);
+  --gradient-soft: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
+
+  /* ---- Surfaces ---- */
   --bg: #ffffff;
   --surface: #ffffff;
-  --surface-alt: #f7f7f7;
-  --surface-muted: #f0f0f0;
+  --surface-alt: #fafafa;
+  --surface-muted: #f3f3f3;
+  --surface-warm: #fff8f6;
+  --backdrop: #f5f5f7;
 
+  /* ---- Text ---- */
   --text: #1a1a1a;
   --text-muted: #6b6b6b;
   --text-faint: #9b9b9b;
   --text-on-primary: #ffffff;
 
-  --border: #e5e5e5;
+  /* ---- Borders ---- */
+  --border: #ececec;
   --border-strong: #d9d9d9;
+  --border-focus: var(--primary);
 
-  --success: #2e7d32;
-  --success-soft: rgba(46, 125, 50, 0.1);
-  --warning: #f9a825;
-  --warning-soft: rgba(249, 168, 37, 0.1);
-  --danger: #d32f2f;
-  --danger-soft: rgba(211, 47, 47, 0.1);
-  --info: #1976d2;
-  --info-soft: rgba(25, 118, 210, 0.1);
+  /* ---- Status ---- */
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.1);
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.1);
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.1);
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* ---- Radius ---- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
   --radius-round: 999px;
 
+  /* ---- Space ---- */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -45,13 +64,27 @@
   --space-xl: 32px;
   --space-xxl: 48px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  /* ---- Shadow ---- */
+  --shadow-xs: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-sm: 0 2px 6px rgba(15, 15, 15, 0.05);
+  --shadow-md: 0 6px 18px rgba(15, 15, 15, 0.06);
+  --shadow-lg: 0 12px 32px rgba(15, 15, 15, 0.10);
+  --shadow-xl: 0 24px 48px rgba(15, 15, 15, 0.14);
+  --shadow-primary: 0 8px 24px rgba(151, 0, 0, 0.22);
+  --shadow-primary-sm: 0 2px 8px rgba(151, 0, 0, 0.18);
 
+  /* ---- Layout ---- */
   --header-height: 56px;
-  --bottom-nav-height: 64px;
+  --bottom-nav-height: 68px;
   --max-content-width: 480px;
+  --max-content-width-wide: 1080px;
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.25s;
+  --duration-slow: 0.4s;
 }
 
 /* ============================================================
@@ -66,20 +99,23 @@
 html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: 'Sarabun', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
+  font-family: 'Sarabun', 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--text);
-  background: var(--surface-alt);
+  background: var(--backdrop);
   min-height: 100dvh;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-img {
+img, svg {
   max-width: 100%;
   display: block;
 }
@@ -87,10 +123,11 @@ img {
 a {
   color: var(--primary);
   text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 a:hover {
-  text-decoration: underline;
+  color: var(--primary-dark);
 }
 
 button {
@@ -116,10 +153,12 @@ h1, h2, h3, h4 {
   margin: 0 0 var(--space-sm);
   color: var(--text);
   font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
-h1 { font-size: 1.6rem; }
-h2 { font-size: 1.3rem; }
+h1 { font-size: 1.65rem; }
+h2 { font-size: 1.35rem; }
 h3 { font-size: 1.1rem; }
 h4 { font-size: 1rem; }
 
@@ -127,7 +166,17 @@ p {
   margin: 0 0 var(--space-sm);
 }
 
+code {
+  font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--surface-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+/* ---- Helpers ---- */
 .text-muted { color: var(--text-muted); }
+.text-faint { color: var(--text-faint); }
 .text-primary { color: var(--primary); }
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
@@ -136,11 +185,32 @@ p {
 .text-small { font-size: 0.85rem; }
 .text-tiny { font-size: 0.75rem; }
 .text-bold { font-weight: 700; }
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
 .hidden { display: none !important; }
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
 
 /* ============================================================
-   Layout — Mobile container ขนาด max 480px กึ่งกลางจอ
+   App shell — Mobile container กลางจอ
+   Desktop: ขยายเป็น 2 คอลัมน์ใน landing/auth ผ่าน class --wide
 ============================================================ */
 .app-shell {
   max-width: var(--max-content-width);
@@ -171,14 +241,27 @@ p {
   width: 100%;
 }
 
+.page-content--lg {
+  padding: var(--space-lg) var(--space-md);
+}
+
+/* ---- Desktop responsive ---- */
 @media (min-width: 768px) {
   body {
-    background: linear-gradient(135deg, #f7f7f7, #ececec);
+    background:
+      radial-gradient(circle at top left, rgba(151, 0, 0, 0.06), transparent 40%),
+      radial-gradient(circle at bottom right, rgba(151, 0, 0, 0.04), transparent 40%),
+      var(--backdrop);
   }
   .app-shell {
     box-shadow: var(--shadow-lg);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
+    border-radius: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-shell {
+    box-shadow: var(--shadow-xl);
   }
 }
 
@@ -187,5 +270,40 @@ p {
   .bottom-nav,
   .app-shell--with-nav {
     padding-bottom: max(var(--bottom-nav-height), env(safe-area-inset-bottom));
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Selection */
+::selection {
+  background: var(--primary-tint);
+  color: var(--primary-dark);
+}
+
+/* Scrollbar — desktop */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.28);
+    background-clip: padding-box;
+    border: 2px solid transparent;
   }
 }

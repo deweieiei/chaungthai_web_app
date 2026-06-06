@@ -1,11 +1,19 @@
 <%- include('partials/head') %>
 <div class="app-shell app-shell--with-nav">
   <div class="page-content">
-    <h2 style="margin-bottom: var(--space-md);">หาช่าง</h2>
+    <div style="margin-bottom: var(--space-md);">
+      <h2 style="margin-bottom: 4px;">หาช่าง</h2>
+      <p class="text-small text-muted" style="margin: 0;">เลือกสกิลและพื้นที่ที่ต้องการ</p>
+    </div>
 
-    <div class="card">
-      <div class="field" style="margin-bottom: 12px;">
-        <label class="field__label" for="skill">สกิลที่ต้องการ *</label>
+    <div class="card card--elevated">
+      <div class="field">
+        <label class="field__label" for="skill">
+          <span style="display:inline-flex; align-items:center; gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg>
+            สกิลที่ต้องการ <span class="text-danger">*</span>
+          </span>
+        </label>
         <select class="select" id="skill">
           <option value="">กำลังโหลดสกิล...</option>
         </select>
@@ -13,7 +21,12 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="province">จังหวัด *</label>
+        <label class="field__label" for="province">
+          <span style="display:inline-flex; align-items:center; gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M20 10c0 7-8 12-8 12s-8-5-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            จังหวัด <span class="text-danger">*</span>
+          </span>
+        </label>
         <select class="select" id="province"><option value="">กำลังโหลด...</option></select>
       </div>
       <div class="field">
@@ -34,7 +47,10 @@
         </span>
       </label>
 
-      <button class="btn btn--primary btn--block" id="search-btn" style="margin-top: var(--space-md);">🔍 ค้นหา</button>
+      <button class="btn btn--primary btn--block btn--lg" id="search-btn" style="margin-top: var(--space-md);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        ค้นหา
+      </button>
     </div>
 
     <div id="results-area"></div>

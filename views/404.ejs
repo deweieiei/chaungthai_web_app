@@ -1,12 +1,12 @@
 <%- include('partials/head') %>
 <div class="app-shell">
   <div class="page-content page-content--narrow" style="display: flex; flex-direction: column; justify-content: center; min-height: 100dvh; text-align: center;">
-    <div style="font-size: 96px; color: var(--primary);">🚫</div>
-    <h1>ไม่พบหน้านี้</h1>
-    <p class="text-muted">หน้า <code><%= path %></code> ไม่มีในระบบ</p>
+    <div style="font-size: 6rem; font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -0.03em;">404</div>
+    <h1 style="margin-top: var(--space-md);">ไม่พบหน้านี้</h1>
+    <p class="text-muted">หน้า <code><%= path %></code><br>ไม่มีในระบบ หรืออาจถูกย้ายแล้ว</p>
     <div style="margin-top: var(--space-lg);">
-      <a href="/home" class="btn btn--primary btn--block">กลับหน้าหลัก</a>
-      <a href="javascript:history.back()" class="btn btn--ghost btn--block" style="margin-top: 8px;">ย้อนกลับ</a>
+      <a href="/home" class="btn btn--primary btn--block btn--lg">กลับหน้าหลัก</a>
+      <a href="javascript:history.back()" class="btn btn--ghost btn--block" style="margin-top: 8px;">‹ ย้อนกลับ</a>
     </div>
   </div>
 </div>

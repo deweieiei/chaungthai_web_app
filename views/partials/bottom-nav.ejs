@@ -3,17 +3,23 @@
   const tab = typeof activeTab !== 'undefined' ? activeTab : null;
   function activeCls(name) { return name === tab ? ' bottom-nav__item--active' : ''; }
 %>
-<nav class="bottom-nav">
-  <a href="/home" class="bottom-nav__item<%= activeCls('home') %>">
-    <span class="bottom-nav__icon">🏠</span>
+<nav class="bottom-nav" aria-label="เมนูหลัก">
+  <a href="/home" class="bottom-nav__item<%= activeCls('home') %>" aria-current="<%= tab === 'home' ? 'page' : 'false' %>">
+    <span class="bottom-nav__icon" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V9.5Z"/></svg>
+    </span>
     <span>หน้าหลัก</span>
   </a>
-  <a href="/search-workers" class="bottom-nav__item<%= activeCls('search') %>">
-    <span class="bottom-nav__icon">🔍</span>
+  <a href="/search-workers" class="bottom-nav__item<%= activeCls('search') %>" aria-current="<%= tab === 'search' ? 'page' : 'false' %>">
+    <span class="bottom-nav__icon" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    </span>
     <span>หาช่าง</span>
   </a>
-  <a href="/profile" class="bottom-nav__item<%= activeCls('profile') %>">
-    <span class="bottom-nav__icon">👤</span>
+  <a href="/profile" class="bottom-nav__item<%= activeCls('profile') %>" aria-current="<%= tab === 'profile' ? 'page' : 'false' %>">
+    <span class="bottom-nav__icon" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </span>
     <span>โปรไฟล์</span>
   </a>
 </nav>
