@@ -10,6 +10,7 @@
 
   const KEY_TOKEN = 'chaungthai_token';
   const KEY_USER = 'chaungthai_user';
+  const KEY_WORKER_ID = 'chaungthai_worker_id';
 
   function getToken() {
     try { return localStorage.getItem(KEY_TOKEN); } catch { return null; }
@@ -34,6 +35,21 @@
     try {
       localStorage.removeItem(KEY_TOKEN);
       localStorage.removeItem(KEY_USER);
+      localStorage.removeItem(KEY_WORKER_ID);
+    } catch {}
+  }
+
+  function getWorkerId() {
+    try {
+      const v = localStorage.getItem(KEY_WORKER_ID);
+      return v ? Number(v) : null;
+    } catch { return null; }
+  }
+
+  function setWorkerId(id) {
+    try {
+      if (id == null) localStorage.removeItem(KEY_WORKER_ID);
+      else localStorage.setItem(KEY_WORKER_ID, String(id));
     } catch {}
   }
 
@@ -81,6 +97,8 @@
     setToken,
     getUser,
     setUser,
+    getWorkerId,
+    setWorkerId,
     clear,
     isLoggedIn,
     isTokenExpired,

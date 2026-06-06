@@ -24,23 +24,15 @@
       nameEl.textContent = fresh.user_name || 'ผู้ใช้';
       applyRole(fresh);
 
-      // ถ้าเป็นช่าง — ลอง search หา worker_id ของตัวเอง
-      if (fresh.user_role === 'worker' && fresh.user_province_id) {
-        // เรียก search แบบ broad → หา worker_id ของตัวเอง
+      // ถ้าเป็นช่าง — โหลด stats จาก /workers/:id โดยใช้ worker_id ที่ resolve ได้
+      if (fresh.user_role === 'worker') {
         try {
-          const sRes = await Api.get('/workers/search', {
-            query: {
-              skill_id: 1,
-              province_id: fresh.user_province_id,
-              auto_expand: 'true',
-              limit: 100,
-            },
-          });
-          const me = (sRes.workers || []).find((w) => w.worker_user_id === fresh.user_id);
-          if (me) {
+          const wid = await resolveWorkerId(fresh);
+          if (wid) {
+            const detail = await Api.get('/workers/' + wid);
             document.getElementById('worker-stats').classList.remove('hidden');
-            document.getElementById('stat-tickets').textContent = me.worker_job_tickets;
-            document.getElementById('stat-jobs').textContent = me.worker_total_jobs;
+            document.getElementById('stat-tickets').textContent = detail.worker.worker_job_tickets;
+            document.getElementById('stat-jobs').textContent = detail.worker.worker_total_jobs;
           }
         } catch {}
       }

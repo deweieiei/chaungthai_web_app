@@ -35,9 +35,10 @@
         worker_resume: resume || undefined,
         skill_ids: Array.from(selectedSet),
       });
-      // อัปเดต role ใน storage
+      // อัปเดต role + worker_id ใน storage (ใช้ในหน้า edit-skills/home)
       const u = Auth.getUser();
       if (u) Auth.setUser({ ...u, user_role: 'worker' });
+      if (res.worker_id) Auth.setWorkerId(res.worker_id);
 
       const ok = await new Promise((resolve) => {
         const m = document.createElement('div');
@@ -62,6 +63,8 @@
       if (err.status === 409) {
         const u = Auth.getUser();
         if (u) Auth.setUser({ ...u, user_role: 'worker' });
+        // backend ส่ง worker_id เดิมกลับใน err.data — เก็บไว้ใช้
+        if (err.data && err.data.worker_id) Auth.setWorkerId(err.data.worker_id);
         await UI.confirm({
           title: 'คุณเป็นช่างอยู่แล้ว',
           message: 'สามารถแก้ไขสกิลได้ในหน้าโปรไฟล์',

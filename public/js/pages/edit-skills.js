@@ -16,36 +16,39 @@
     submitBtn.textContent = `บันทึก (${selectedSet.size} สกิล)`;
   }
 
-  // หา worker_id ของตัวเอง via search
+  function showError(title, subtitle, actionHtml = '') {
+    loadingArea.innerHTML = `<div class="empty-state">
+      <div class="empty-state__icon">⚠</div>
+      <div class="empty-state__title">${UI.escapeHtml(title)}</div>
+      ${subtitle ? `<p class="text-muted text-small">${UI.escapeHtml(subtitle)}</p>` : ''}
+      ${actionHtml}
+    </div>`;
+  }
+
   (async () => {
     const u = Auth.getUser();
-    if (!u || u.user_role !== 'worker') {
-      loadingArea.innerHTML = `<div class="empty-state">
-        <div class="empty-state__icon">🚫</div>
-        <div class="empty-state__title">ยังไม่ได้เป็นช่าง</div>
-        <a href="/become-worker" class="btn btn--primary btn--sm" style="margin-top: 12px;">สมัครเป็นช่าง</a>
-      </div>`;
+    if (!u) {
+      showError('ยังไม่ได้เข้าสู่ระบบ', '');
       return;
     }
-    try {
-      // search by skill 1 + province → หาเอง
-      const sRes = await Api.get('/workers/search', {
-        query: {
-          skill_id: 1,
-          province_id: u.user_province_id || 1,
-          auto_expand: 'true',
-          limit: 100,
-        },
-      });
-      const me = (sRes.workers || []).find((w) => w.worker_user_id === u.user_id);
-      if (me) workerId = me.worker_id;
+    if (u.user_role !== 'worker') {
+      showError(
+        'ยังไม่ได้เป็นช่าง',
+        'สมัครเป็นช่างก่อน',
+        '<a href="/become-worker" class="btn btn--primary btn--sm" style="margin-top: 12px;">สมัครเป็นช่าง</a>'
+      );
+      return;
+    }
 
+    try {
+      // หา worker_id ของตัวเอง (จาก localStorage หรือ search ผ่าน skill tree)
+      workerId = await resolveWorkerId(u);
       if (!workerId) {
-        loadingArea.innerHTML = `<div class="empty-state">
-          <div class="empty-state__icon">⚠</div>
-          <div class="empty-state__title">หา worker_id ไม่เจอ</div>
-          <p class="text-muted text-small">ลองรีเฟรชหน้า</p>
-        </div>`;
+        showError(
+          'หา worker_id ไม่เจอ',
+          'ลองออกจากระบบแล้วเข้าใหม่ หรือสมัครเป็นช่างใหม่',
+          '<a href="/profile" class="btn btn--outline btn--sm" style="margin-top: 12px;">กลับโปรไฟล์</a>'
+        );
         return;
       }
 
@@ -68,11 +71,7 @@
       selectedSet = new Set(currentSkillIds);
       updateBtn();
     } catch (err) {
-      loadingArea.innerHTML = `<div class="empty-state">
-        <div class="empty-state__icon">⚠</div>
-        <div class="empty-state__title">โหลดข้อมูลไม่ได้</div>
-        <p class="text-muted text-small">${UI.escapeHtml(err.message || '')}</p>
-      </div>`;
+      showError('โหลดข้อมูลไม่ได้', err.message || '');
     }
   })();
 
