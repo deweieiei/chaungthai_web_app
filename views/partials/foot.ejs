@@ -1,9 +1,9 @@
-<script src="/static/js/auth.js"></script>
-<script src="/static/js/api.js"></script>
-<script src="/static/js/ui.js"></script>
-<script src="/static/js/worker-resolver.js"></script>
+<script src="/static/js/auth.js?v=<%= assetV %>"></script>
+<script src="/static/js/api.js?v=<%= assetV %>"></script>
+<script src="/static/js/ui.js?v=<%= assetV %>"></script>
+<script src="/static/js/worker-resolver.js?v=<%= assetV %>"></script>
 <% if (typeof pageScript !== 'undefined' && pageScript) { %>
-  <script src="/static/js/pages/<%= pageScript %>.js"></script>
+  <script src="/static/js/pages/<%= pageScript %>.js?v=<%= assetV %>"></script>
 <% } %>
 </body>
 </html>

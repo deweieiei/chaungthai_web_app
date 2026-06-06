@@ -13,7 +13,7 @@
     </div>
   </div>
 </div>
-<script src="/static/js/auth.js"></script>
+<script src="/static/js/auth.js?v=<%= assetV %>"></script>
 <script>
   // ถ้า login แล้ว → ไป /home เลย
   if (window.Auth && window.Auth.isLoggedIn()) location.replace('/home');

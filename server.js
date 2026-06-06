@@ -27,6 +27,9 @@ if (ALLOW_SELF_SIGNED) {
 const TARGET_URL = new URL(API_TARGET);
 const isHttps = TARGET_URL.protocol === 'https:';
 
+// version สำหรับ cache busting (?v=...) — เปลี่ยนทุกครั้งที่ restart
+const ASSET_VERSION = process.env.ASSET_VERSION || String(Date.now());
+
 // Agent ใช้ keep-alive ต่อกับ backend
 const upstreamAgent = isHttps
   ? new https.Agent({ keepAlive: true, rejectUnauthorized: !ALLOW_SELF_SIGNED })
@@ -39,13 +42,20 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
 
+// ตัวแปรที่ทุก EJS template (รวม partials ที่ include) เข้าถึงได้
+app.locals.assetV = ASSET_VERSION;
+app.locals.isDev = IS_DEV;
+
 // ============================================================
 //  Static
 // ============================================================
 app.use(
   '/static',
   express.static(path.join(__dirname, 'public'), {
-    maxAge: IS_DEV ? 0 : '7d',
+    // เปลี่ยน max-age สั้นลง (1 ชม.) — ถ้าใช้ ?v= cache busting แล้ว
+    // browser จะโหลดใหม่ทันทีเมื่อ version เปลี่ยน
+    maxAge: IS_DEV ? 0 : '1h',
+    etag: true,
   })
 );
 
@@ -109,6 +119,7 @@ function page(req, res, view, opts = {}) {
     activeTab: opts.activeTab || null,
     isDev: IS_DEV,
     path: req.path,
+    assetV: ASSET_VERSION,
     ...opts,
   });
 }
