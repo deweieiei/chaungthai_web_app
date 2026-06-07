@@ -187,12 +187,16 @@ app.get('/search-workers', (req, res) =>
 app.get('/chat', (req, res) =>
   page(req, res, 'chat', { title: 'แชต', activeTab: 'chat' })
 );
-app.get('/chat/:user_id(\\d+)', (req, res) =>
+app.get('/chat/:user_id', (req, res) => {
+  // Express 5: validate ตัวเลขที่นี่แทน inline regex (path-to-regexp v8 ไม่รองรับแล้ว)
+  if (!/^\d+$/.test(req.params.user_id)) {
+    return page(req, res, '404', { title: 'ไม่พบหน้า' });
+  }
   page(req, res, 'chat/room', {
     title: 'แชต',
     targetUserId: req.params.user_id,
-  })
-);
+  });
+});
 
 // ============================================================
 //  Health
