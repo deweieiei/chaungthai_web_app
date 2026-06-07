@@ -187,17 +187,17 @@
 
   // ---- view: worker tab (already a worker — dashboard) ----
   function renderWorkerDashboardTab(u, w) {
-    // ข้อมูลปลอม (จะ replace ด้วยข้อมูลจริงในอนาคต)
-    const ticketsUsed = w ? (25 - (w.worker_job_tickets ?? 25)) : 1;
-    const ticketsRemain = w ? (w.worker_job_tickets ?? 25) : 24;
+    // บัตรรับงาน — ใช้ข้อมูลจริงจาก DB
     const totalTickets = 25;
+    const ticketsRemain = w ? Number(w.worker_job_tickets ?? 0) : 0;
+    const ticketsUsed = Math.max(0, totalTickets - ticketsRemain);
     const ticketsPct = Math.round((ticketsRemain / totalTickets) * 100);
 
-    const totalJobs = w ? (w.worker_total_jobs ?? 0) : 0;
+    const totalJobs = w ? Number(w.worker_total_jobs ?? 0) : 0;
     // จำนวนงานที่รับ % — สมมุติว่าเทียบกับ 100 งาน
     const jobsPct = Math.min(100, Math.round((totalJobs / 100) * 100));
 
-    // % เอกสารยื่นสมัคร — fake แสดง progress ตามจำนวนข้อมูลที่กรอก
+    // % เอกสารยื่นสมัคร — คำนวณจากข้อมูลจริงที่ user กรอก
     let docsPct = 0;
     if (u.user_phone) docsPct += 20;
     if (u.user_phone_verified_at) docsPct += 10;
@@ -209,8 +209,8 @@
     if (w && w.worker_crime_checked_at) docsPct += 15;
     docsPct = Math.min(100, docsPct);
 
-    // คะแนนความประพฤติ — fake (จะดึงจาก rating system ในอนาคต)
-    const conductScore = 95;
+    // คะแนนความประพฤติ — ใส่ 100/100 ก่อน (รอ rating system)
+    const conductScore = 100;
     const conductMax = 100;
 
     // เลขบัตรช่าง — สร้างจาก worker_id แบบ CT-0000-0001

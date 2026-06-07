@@ -1,16 +1,15 @@
 // ============================================================
 //  worker-resolver.js — ค้นหา worker_id ของ user ปัจจุบัน
 //
-//  วิธีการ:
+//  วิธีการ (เร็วและถูกต้องกว่าเดิม):
 //  1. ลองอ่านจาก localStorage (Auth.getWorkerId)
-//  2. ถ้าไม่มี — search ผ่าน skill tree แบบ batch parallel
-//     เจอแล้ว → cache ไว้ใน localStorage
-//  3. ถ้ายังไม่เจอ → return null (อาจไม่ใช่ช่าง)
+//  2. เรียก GET /api/workers/by-user/:user_id (ใหม่ — direct lookup)
+//  3. fallback: ถ้า endpoint ไม่มี (server เก่า) — search ผ่าน skill tree
 // ============================================================
 (function (global) {
   'use strict';
 
-  const BATCH_SIZE = 12; // parallel calls ต่อ batch — กันโหลด server หนัก
+  const BATCH_SIZE = 12;
 
   async function resolveWorkerId(user) {
     if (!user) return null;
@@ -21,7 +20,21 @@
 
     if (user.user_role !== 'worker') return null;
 
-    // 2. โหลด skill tree → flatten ทุก skill_id
+    // 2. direct lookup ผ่าน API ใหม่
+    try {
+      const res = await Api.get('/workers/by-user/' + user.user_id);
+      if (res && res.worker_id) {
+        Auth.setWorkerId(res.worker_id);
+        return res.worker_id;
+      }
+    } catch (err) {
+      // 404 = ไม่ใช่ worker (แม้ user_role=worker — DB inconsistent)
+      if (err && err.status === 404) return null;
+      // 5xx หรือ network error → ลอง fallback
+      console.warn('[worker-resolver] direct lookup failed, fallback to skill search', err);
+    }
+
+    // 3. fallback: search ผ่าน skill tree (เผื่อ server ยังไม่ deploy by-user endpoint)
     let tree;
     try {
       tree = await Api.get('/skills');
@@ -36,10 +49,8 @@
         }
       }
     }
-
     const provinceId = user.user_province_id || 1;
 
-    // 3. search เป็น batch — เจอแล้วหยุด
     for (let i = 0; i < allSkillIds.length; i += BATCH_SIZE) {
       const batch = allSkillIds.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(
