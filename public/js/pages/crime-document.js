@@ -5,22 +5,60 @@
 
   const root = document.getElementById('crime-root');
 
+  function statusLabel(status) {
+    if (status === 'approved') return { th: 'ผ่านการตรวจสอบ', cls: 'alert--success', icon: '✓' };
+    if (status === 'rejected') return { th: 'ไม่ผ่านการตรวจสอบ', cls: 'alert--danger', icon: '✗' };
+    if (status === 'pending') return { th: 'รอเจ้าหน้าที่ตรวจสอบ', cls: 'alert--info', icon: '⏳' };
+    return null;
+  }
+
   function statusBlock(w) {
-    if (w && w.worker_crime_checked_at) {
+    if (!w || !w.worker_crime_checked_at) {
       return `
-        <div class="alert alert--success">
+        <div class="alert alert--warning">
           <span class="alert__icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
           </span>
-          <span>ยื่นเอกสารแล้ว · ${UI.formatThaiDate(w.worker_crime_checked_at)}</span>
+          <span>ยังไม่ได้ยืนยัน — กรุณาอัพโหลดเอกสารเพื่อเปิดรับงาน</span>
+        </div>`;
+    }
+    const lab = statusLabel(w.worker_crime_check_status) || statusLabel('pending');
+    return `
+      <div class="alert ${lab.cls}">
+        <span class="alert__icon" aria-hidden="true">${lab.icon}</span>
+        <span><strong>${lab.th}</strong> · ยื่นเมื่อ ${UI.formatThaiDate(w.worker_crime_checked_at)}</span>
+      </div>`;
+  }
+
+  function documentPreview(w) {
+    if (!w || !w.worker_crime_document_url) return '';
+    const url = w.worker_crime_document_url;
+    const isPdf = /\.pdf(\?|$)/i.test(url);
+    const fullUrl = resolveImageUrl(url);
+
+    if (isPdf) {
+      return `
+        <div class="card">
+          <div class="card__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            เอกสารที่ยื่น
+          </div>
+          <a href="${UI.escapeHtml(fullUrl)}" target="_blank" class="btn btn--soft btn--block" style="margin-top: var(--space-sm);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            เปิดไฟล์ PDF
+          </a>
+          <p class="text-tiny text-muted" style="margin-top: 6px;">${UI.escapeHtml(url.split('/').pop())}</p>
         </div>`;
     }
     return `
-      <div class="alert alert--warning">
-        <span class="alert__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-        </span>
-        <span>ยังไม่ได้ยืนยัน — กรุณาอัพโหลดเอกสารเพื่อเปิดรับงาน</span>
+      <div class="card">
+        <div class="card__title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          รูปที่ยื่น
+        </div>
+        <a href="${UI.escapeHtml(fullUrl)}" target="_blank" style="display:block; margin-top: var(--space-sm); border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt);">
+          <img src="${UI.escapeHtml(fullUrl)}" alt="ประวัติอาชญากรรม" style="width:100%; height:auto; max-height: 400px; object-fit: contain; display:block;">
+        </a>
       </div>`;
   }
 
@@ -36,11 +74,12 @@
       </div>
 
       ${statusBlock(w)}
+      ${documentPreview(w)}
 
       <div class="card">
         <h3 class="card__title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          ${hasDoc ? 'อัพโหลดใหม่' : 'อัพโหลดเอกสาร'}
+          ${hasDoc ? 'อัพโหลดใหม่ (แทนที่)' : 'อัพโหลดเอกสาร'}
         </h3>
         <p class="text-small text-muted" style="margin-top: 4px;">
           รองรับไฟล์ PDF, JPG, PNG, WEBP — ขนาดไม่เกิน 5 MB

@@ -185,6 +185,15 @@
       </div>`;
   }
 
+  // ---- crime check status label ----
+  function crimeStatusLabel(w) {
+    if (!w || !w.worker_crime_checked_at) return '⚠ ยังไม่ตรวจประวัติ';
+    const st = w.worker_crime_check_status;
+    if (st === 'approved') return '✓ ตรวจประวัติแล้ว';
+    if (st === 'rejected') return '✗ ไม่ผ่านการตรวจ';
+    return '⏳ รอเจ้าหน้าที่ตรวจ';
+  }
+
   // ---- view: worker tab (already a worker — dashboard) ----
   function renderWorkerDashboardTab(u, w) {
     // บัตรรับงาน — ใช้ข้อมูลจริงจาก DB
@@ -240,7 +249,7 @@
         </div>
         <div class="worker-id-card__foot">
           <span>สมาชิกตั้งแต่ ${memberSince}</span>
-          <span>✓ ${w && w.worker_crime_checked_at ? 'ตรวจประวัติแล้ว' : 'รอตรวจประวัติ'}</span>
+          <span>${crimeStatusLabel(w)}</span>
         </div>
       </div>
 

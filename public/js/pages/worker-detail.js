@@ -15,8 +15,14 @@
     const verifiedBadges = [];
     if (u.user_email_verified_at) verifiedBadges.push('<span class="chip chip--success">✓ อีเมล</span>');
     if (u.user_phone_verified_at) verifiedBadges.push('<span class="chip chip--success">✓ เบอร์</span>');
-    if (w.worker_crime_checked_at) {
+    // crime check status chip
+    const crimeStatus = w.worker_crime_check_status;
+    if (crimeStatus === 'approved') {
       verifiedBadges.push('<span class="chip chip--success">✓ ตรวจประวัติ</span>');
+    } else if (crimeStatus === 'rejected') {
+      verifiedBadges.push('<span class="chip chip--danger">✗ ไม่ผ่านการตรวจ</span>');
+    } else if (crimeStatus === 'pending' || w.worker_crime_checked_at) {
+      verifiedBadges.push('<span class="chip chip--info">⏳ รอตรวจประวัติ</span>');
     } else {
       verifiedBadges.push('<span class="chip chip--warning">⚠ ยังไม่ตรวจประวัติ</span>');
     }
@@ -45,25 +51,44 @@
       : '';
 
     // สถานะตรวจประวัติอาชญากรรม (card)
-    const crimeStatusCard = w.worker_crime_checked_at
-      ? `<div class="card">
+    const crimeStatusCard = (() => {
+      const submitted = !!w.worker_crime_checked_at;
+      const st = w.worker_crime_check_status;
+      let strokeColor = 'var(--warning)';
+      let iconPath = '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/>';
+      let title = 'ยังไม่ได้ยืนยัน';
+      let cls = 'text-muted';
+      if (st === 'approved') {
+        strokeColor = 'var(--success)';
+        iconPath = '<path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>';
+        title = 'ผ่านการตรวจสอบ';
+        cls = '';
+      } else if (st === 'rejected') {
+        strokeColor = 'var(--danger)';
+        iconPath = '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>';
+        title = 'ไม่ผ่านการตรวจสอบ';
+        cls = '';
+      } else if (st === 'pending' || submitted) {
+        strokeColor = 'var(--info)';
+        iconPath = '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>';
+        title = 'รอเจ้าหน้าที่ตรวจสอบ';
+        cls = '';
+      }
+
+      const dateText = submitted
+        ? `ยื่นเมื่อ ${UI.formatThaiDate(w.worker_crime_checked_at)}`
+        : '';
+
+      return `<div class="card">
           <div class="card__title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPath}</svg>
             ประวัติอาชญากรรม
           </div>
-          <p class="text-small" style="margin: 0; color: var(--success);">
-            <strong>ยืนยันแล้ว</strong> · ${UI.formatThaiDate(w.worker_crime_checked_at)}
-          </p>
-        </div>`
-      : `<div class="card">
-          <div class="card__title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-            ประวัติอาชญากรรม
-          </div>
-          <p class="text-small text-muted" style="margin: 0;">
-            ยังไม่ได้ยืนยัน
+          <p class="text-small ${cls}" style="margin: 0; ${st === 'approved' ? 'color: var(--success);' : st === 'rejected' ? 'color: var(--danger);' : ''}">
+            <strong>${title}</strong>${dateText ? ' · ' + dateText : ''}
           </p>
         </div>`;
+    })();
 
     // ผลงาน (portfolio) — ถ้าว่าง โชว์ empty state
     const hasResume = !!w.worker_resume;
