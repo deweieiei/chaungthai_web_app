@@ -178,6 +178,9 @@ app.get('/worker/:id', (req, res) =>
 app.get('/search-workers', (req, res) =>
   page(req, res, 'search', { title: 'หาช่าง', activeTab: 'search' })
 );
+app.get('/chat', (req, res) =>
+  page(req, res, 'chat', { title: 'แชต', activeTab: 'chat' })
+);
 
 // ============================================================
 //  Health
