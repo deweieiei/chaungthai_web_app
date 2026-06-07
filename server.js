@@ -169,6 +169,12 @@ app.get('/become-worker', (req, res) =>
 app.get('/worker/edit-skills', (req, res) =>
   page(req, res, 'worker/edit-skills', { title: 'แก้ไขสกิล' })
 );
+app.get('/worker/crime-document', (req, res) =>
+  page(req, res, 'worker/crime-document', { title: 'ประวัติอาชญากรรม' })
+);
+app.get('/worker/portfolio', (req, res) =>
+  page(req, res, 'worker/portfolio', { title: 'รีซูเม่ / ผลงาน' })
+);
 app.get('/worker/:id', (req, res) =>
   page(req, res, 'worker/detail', {
     title: 'รายละเอียดช่าง',

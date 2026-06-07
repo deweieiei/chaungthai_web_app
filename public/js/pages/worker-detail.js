@@ -15,6 +15,11 @@
     const verifiedBadges = [];
     if (u.user_email_verified_at) verifiedBadges.push('<span class="chip chip--success">✓ อีเมล</span>');
     if (u.user_phone_verified_at) verifiedBadges.push('<span class="chip chip--success">✓ เบอร์</span>');
+    if (w.worker_crime_checked_at) {
+      verifiedBadges.push('<span class="chip chip--success">✓ ตรวจประวัติ</span>');
+    } else {
+      verifiedBadges.push('<span class="chip chip--warning">⚠ ยังไม่ตรวจประวัติ</span>');
+    }
 
     const locParts = [loc.subdistrict_name_th, loc.district_name_th, loc.province_name_th]
       .filter(Boolean).join(' · ');
@@ -39,18 +44,73 @@
          </a>`
       : '';
 
-    const portfolioHtml = (d.portfolio_images || []).length === 0 ? '' : `
-      <div class="card">
-        <div class="card__title">🖼 ผลงาน</div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-          ${d.portfolio_images.map((p) => `
-            <a href="${UI.escapeHtml(resolveImageUrl(p.worker_resume_image_url))}" target="_blank"
-               style="aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt);">
-              <img src="${UI.escapeHtml(resolveImageUrl(p.worker_resume_image_url))}" alt="" style="width:100%; height:100%; object-fit: cover;">
-            </a>
-          `).join('')}
-        </div>
-      </div>`;
+    // สถานะตรวจประวัติอาชญากรรม (card)
+    const crimeStatusCard = w.worker_crime_checked_at
+      ? `<div class="card">
+          <div class="card__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+            ประวัติอาชญากรรม
+          </div>
+          <p class="text-small" style="margin: 0; color: var(--success);">
+            <strong>ยืนยันแล้ว</strong> · ${UI.formatThaiDate(w.worker_crime_checked_at)}
+          </p>
+        </div>`
+      : `<div class="card">
+          <div class="card__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+            ประวัติอาชญากรรม
+          </div>
+          <p class="text-small text-muted" style="margin: 0;">
+            ยังไม่ได้ยืนยัน
+          </p>
+        </div>`;
+
+    // ผลงาน (portfolio) — ถ้าว่าง โชว์ empty state
+    const hasResume = !!w.worker_resume;
+    const hasImages = (d.portfolio_images || []).length > 0;
+
+    let portfolioCard = '';
+    if (!hasResume && !hasImages) {
+      portfolioCard = `
+        <div class="card">
+          <div class="card__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+            รีซูเม่ / ผลงาน
+          </div>
+          <div class="empty-state" style="padding: var(--space-md) 0;">
+            <div class="empty-state__icon" style="font-size: 40px;">📭</div>
+            <div class="empty-state__title">ไม่มีรีซูเม่ หรือผลงาน</div>
+            <p class="text-muted text-small">ช่างยังไม่ได้เพิ่มข้อมูลผลงานในตอนนี้</p>
+          </div>
+        </div>`;
+    } else {
+      const resumeBlock = hasResume ? `
+        <div class="card">
+          <div class="card__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            ประวัติ / รีซูเม่
+          </div>
+          <div style="white-space: pre-wrap;">${UI.escapeHtml(w.worker_resume)}</div>
+        </div>` : '';
+
+      const imagesBlock = hasImages ? `
+        <div class="card">
+          <div class="card__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+            ผลงาน (${d.portfolio_images.length})
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: var(--space-sm);">
+            ${d.portfolio_images.map((p) => `
+              <a href="${UI.escapeHtml(resolveImageUrl(p.worker_resume_image_url))}" target="_blank"
+                 style="aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt); display: block;">
+                <img src="${UI.escapeHtml(resolveImageUrl(p.worker_resume_image_url))}" alt="${UI.escapeHtml(p.worker_resume_image_caption || '')}" style="width:100%; height:100%; object-fit: cover;">
+              </a>
+            `).join('')}
+          </div>
+        </div>` : '';
+
+      portfolioCard = resumeBlock + imagesBlock;
+    }
 
     root.innerHTML = `
       <div class="text-center">
@@ -81,11 +141,7 @@
         ${u.user_address ? `<div style="margin-top: 6px;">${UI.escapeHtml(u.user_address)}</div>` : ''}
       </div>
 
-      ${w.worker_resume ? `
-      <div class="card">
-        <div class="card__title">📝 ประวัติ</div>
-        <div style="white-space: pre-wrap;">${UI.escapeHtml(w.worker_resume)}</div>
-      </div>` : ''}
+      ${crimeStatusCard}
 
       <div class="card">
         <div class="card__title">🛠 สกิลของช่าง (${(d.skills || []).length})</div>
@@ -99,7 +155,7 @@
         `).join('')}
       </div>
 
-      ${portfolioHtml}
+      ${portfolioCard}
     `;
   }
 
