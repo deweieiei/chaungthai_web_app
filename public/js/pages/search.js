@@ -3,6 +3,8 @@
   'use strict';
   if (!Auth.guard()) return;
 
+  const elCategory = document.getElementById('category');
+  const elSubcategory = document.getElementById('subcategory');
   const elSkill = document.getElementById('skill');
   const elProvince = document.getElementById('province');
   const elDistrict = document.getElementById('district');
@@ -11,27 +13,85 @@
   const btnSearch = document.getElementById('search-btn');
   const elResults = document.getElementById('results-area');
 
-  // โหลด skill tree → flatten เป็น dropdown แบบ optgroup
+  // เก็บ skill tree ทั้งหมดใน memory เพื่อ cascade
+  let skillTree = null;
+  // index ช่วย lookup เร็ว
+  const subcatById = new Map();
+  const skillById = new Map();
+
+  // ----- โหลด skill tree -----
   (async () => {
     try {
       const tree = await Api.get('/skills');
-      const opts = ['<option value="">-- เลือกสกิล --</option>'];
+      skillTree = tree;
+      // populate category dropdown
+      const opts = ['<option value="">— ทั้งหมด —</option>'];
       for (const cat of tree.categories) {
-        opts.push(`<optgroup label="${UI.escapeHtml(cat.skill_category_name_th)}">`);
+        opts.push(`<option value="${cat.skill_category_id}">${UI.escapeHtml(cat.skill_category_name_th)}</option>`);
         for (const sub of cat.subcategories) {
-          for (const s of sub.skills) {
-            opts.push(`<option value="${s.skill_id}">${UI.escapeHtml(s.skill_name_th)} (${UI.escapeHtml(sub.skill_subcategory_name_th)})</option>`);
+          subcatById.set(sub.skill_subcategory_id, { sub, cat });
+          for (const sk of sub.skills) {
+            skillById.set(sk.skill_id, { sk, sub, cat });
           }
         }
-        opts.push('</optgroup>');
       }
-      elSkill.innerHTML = opts.join('');
+      elCategory.innerHTML = opts.join('');
     } catch (err) {
-      elSkill.innerHTML = '<option value="">โหลดสกิลไม่ได้</option>';
+      elCategory.innerHTML = '<option value="">โหลดหมวดไม่ได้</option>';
+      console.error('[search] load skill tree', err);
     }
   })();
 
-  // จังหวัด → อำเภอ → ตำบล
+  // ----- cascade: category → subcategory -----
+  elCategory.addEventListener('change', () => {
+    const catId = Number(elCategory.value);
+    // reset subcat + skill
+    elSubcategory.value = '';
+    elSkill.value = '';
+    elSkill.disabled = true;
+    elSkill.innerHTML = '<option value="">— ทั้งหมด —</option>';
+
+    if (!catId || !skillTree) {
+      elSubcategory.disabled = true;
+      elSubcategory.innerHTML = '<option value="">— ทั้งหมด —</option>';
+      return;
+    }
+    const cat = skillTree.categories.find((c) => c.skill_category_id === catId);
+    if (!cat) {
+      elSubcategory.disabled = true;
+      return;
+    }
+    const opts = ['<option value="">— ทั้งหมดใน ' + UI.escapeHtml(cat.skill_category_name_th) + ' —</option>'];
+    for (const sub of cat.subcategories) {
+      opts.push(`<option value="${sub.skill_subcategory_id}">${UI.escapeHtml(sub.skill_subcategory_name_th)}</option>`);
+    }
+    elSubcategory.innerHTML = opts.join('');
+    elSubcategory.disabled = false;
+  });
+
+  // ----- cascade: subcategory → skill -----
+  elSubcategory.addEventListener('change', () => {
+    const subId = Number(elSubcategory.value);
+    elSkill.value = '';
+    if (!subId) {
+      elSkill.disabled = true;
+      elSkill.innerHTML = '<option value="">— ทั้งหมด —</option>';
+      return;
+    }
+    const info = subcatById.get(subId);
+    if (!info) {
+      elSkill.disabled = true;
+      return;
+    }
+    const opts = ['<option value="">— ทั้งหมดใน ' + UI.escapeHtml(info.sub.skill_subcategory_name_th) + ' —</option>'];
+    for (const sk of info.sub.skills) {
+      opts.push(`<option value="${sk.skill_id}">${UI.escapeHtml(sk.skill_name_th)}</option>`);
+    }
+    elSkill.innerHTML = opts.join('');
+    elSkill.disabled = false;
+  });
+
+  // ----- location cascade (เหมือนเดิม) -----
   (async () => {
     try {
       const res = await Api.get('/locations/provinces');
@@ -80,12 +140,9 @@
     }
   });
 
+  // ----- submit search -----
   btnSearch.addEventListener('click', async () => {
     UI.setFieldError('skill', null);
-    if (!elSkill.value) {
-      UI.setFieldError('skill', 'กรุณาเลือกสกิล');
-      return;
-    }
     if (!elProvince.value) {
       UI.toast('กรุณาเลือกจังหวัด', 'warning');
       return;
@@ -95,13 +152,15 @@
     elResults.innerHTML = '<div class="loading-block"><div class="spinner"></div><div>กำลังค้นหา...</div></div>';
 
     try {
-      const query = {
-        skill_id: elSkill.value,
-        province_id: elProvince.value,
-      };
+      const query = { province_id: elProvince.value };
       if (elDistrict.value) query.district_id = elDistrict.value;
       if (elSubdistrict.value) query.subdistrict_id = elSubdistrict.value;
       if (elAuto.checked) query.auto_expand = 'true';
+
+      // ส่ง filter ที่เฉพาะที่สุด (server จะใช้อันที่เฉพาะที่สุด แต่ส่งครบไปเลย)
+      if (elSkill.value) query.skill_id = elSkill.value;
+      else if (elSubcategory.value) query.skill_subcategory_id = elSubcategory.value;
+      else if (elCategory.value) query.skill_category_id = elCategory.value;
 
       const res = await Api.get('/workers/search', { query });
       renderResults(res);
@@ -123,11 +182,11 @@
     return 'พื้นที่';
   }
 
-  // เลือกชื่อสกิลที่ผู้ใช้เลือกตอน search (เก็บไว้ตอน submit)
-  let currentSearchSkillId = null;
+  // เก็บ filter ปัจจุบันสำหรับ matching ใน worker card
+  let currentFilter = null;
 
   function renderResults(res) {
-    currentSearchSkillId = res.skill_id;
+    currentFilter = res.filter || {};
     if (!res.workers || res.workers.length === 0) {
       elResults.innerHTML = `<div class="empty-state">
         <div class="empty-state__icon">🔍</div>
@@ -137,41 +196,79 @@
       return;
     }
 
-    const matchedHtml = res.matched_level ? `
+    // header สรุปผล
+    const filterLabel = describeFilter(res.filter, res.applied_filter);
+    const matchedHtml = `
       <div class="alert alert--info" style="margin-top: var(--space-md);">
         <span class="alert__icon">📍</span>
-        <span>พบ <strong>${res.total}</strong> คน ใน${levelLabel(res.matched_level)}</span>
-      </div>` : '';
+        <span>พบ <strong>${res.total}</strong> คน ${filterLabel ? '· ' + filterLabel + ' ' : ''}${res.matched_level ? 'ใน' + levelLabel(res.matched_level) : ''}</span>
+      </div>`;
 
-    const cardsHtml = res.workers.map((w) => renderWorkerCard(w)).join('');
-
+    const cardsHtml = res.workers.map((w) => renderWorkerCard(w, res.applied_filter)).join('');
     elResults.innerHTML = matchedHtml + cardsHtml;
   }
 
-  // จัดสกิลทั้งหมดของช่าง → กลุ่มตาม subcategory + ดึง matched skill ขึ้นมาก่อน
-  function renderWorkerCard(w) {
+  function describeFilter(f, applied) {
+    if (!f || !applied) return '';
+    if (applied === 'skill') return `สกิล: ${UI.escapeHtml(f.skill_name_th || '')}`;
+    if (applied === 'subcategory') return `สาขา: ${UI.escapeHtml(f.skill_subcategory_name_th || '')}`;
+    if (applied === 'category') return `หมวด: ${UI.escapeHtml(f.skill_category_name_th || '')}`;
+    return '';
+  }
+
+  // ตัดสินใจว่า skill นี้ "matched" filter ปัจจุบันไหม
+  function isSkillMatched(skill, applied, filter) {
+    if (!applied || !filter) return false;
+    if (applied === 'skill') return skill.skill_id === filter.skill_id;
+    if (applied === 'subcategory') return skill.skill_subcategory_id === filter.skill_subcategory_id;
+    if (applied === 'category') return skill.skill_category_id === filter.skill_category_id;
+    return false;
+  }
+
+  function renderWorkerCard(w, applied) {
     const name = ((w.user_name || '') + ' ' + (w.user_lastname || '')).trim() || 'ผู้ใช้';
     const locParts = [w.subdistrict_name_th, w.district_name_th, w.province_name_th]
       .filter(Boolean).join(' · ');
 
     const allSkills = Array.isArray(w.all_skills) ? w.all_skills : [];
-    const matchedSkill = allSkills.find((s) => s.skill_id === currentSearchSkillId)
-      || { skill_name_th: w.skill_name_th, skill_subcategory_name_th: w.skill_subcategory_name_th, skill_category_name_th: w.skill_category_name_th };
-    const otherSkills = allSkills.filter((s) => s.skill_id !== currentSearchSkillId);
+    // แยก matched / unmatched ตาม filter
+    const matched = [];
+    const unmatched = [];
+    for (const s of allSkills) {
+      (isSkillMatched(s, applied, currentFilter) ? matched : unmatched).push(s);
+    }
 
-    // chip ของสกิลที่ค้นหา (highlight)
-    const matchedChip = `<span class="chip chip--matched" title="${UI.escapeHtml(matchedSkill.skill_subcategory_name_th || '')}">
-      <span aria-hidden="true">✓</span> ${UI.escapeHtml(matchedSkill.skill_name_th || '')}
-    </span>`;
+    // เรียง: matched ก่อน, unmatched ตาม
+    const MAX_VISIBLE = 6;
+    const visible = [...matched, ...unmatched].slice(0, MAX_VISIBLE);
+    const moreCount = allSkills.length - visible.length;
 
-    // chip ของสกิลอื่นๆ (แสดง 3 ตัวแรก + "+N" ถ้ามีมากกว่า)
-    const MAX_OTHER = 3;
-    const otherChips = otherSkills.slice(0, MAX_OTHER).map((s) =>
-      `<span class="chip chip--neutral" title="${UI.escapeHtml(s.skill_subcategory_name_th || '')}">${UI.escapeHtml(s.skill_name_th)}</span>`
-    ).join('');
-    const moreChip = otherSkills.length > MAX_OTHER
-      ? `<span class="chip chip--outline">+${otherSkills.length - MAX_OTHER} สกิล</span>`
+    const chipsHtml = visible.map((s) => {
+      const isMatched = matched.includes(s);
+      const cls = isMatched ? 'chip chip--matched' : 'chip chip--neutral';
+      const title = s.skill_subcategory_name_th
+        ? `${s.skill_subcategory_name_th} · ${s.skill_category_name_th || ''}`
+        : (s.skill_category_name_th || '');
+      return `<span class="${cls}" title="${UI.escapeHtml(title)}">${isMatched ? '<span aria-hidden="true">✓</span> ' : ''}${UI.escapeHtml(s.skill_name_th)}</span>`;
+    }).join('');
+    const moreChip = moreCount > 0
+      ? `<span class="chip chip--outline">+${moreCount} สกิล</span>`
       : '';
+
+    // หา "สาขาเด่น" สำหรับโชว์ใต้ชื่อ — ใช้ category ของ matched skill อันแรก ถ้ามี
+    let categoryLabel = '';
+    if (matched.length > 0 && matched[0].skill_category_name_th) {
+      categoryLabel = matched[0].skill_category_name_th;
+    } else if (allSkills.length > 0 && allSkills[0].skill_category_name_th) {
+      categoryLabel = allSkills[0].skill_category_name_th;
+    }
+
+    // หา subcategory label — ถ้า matched ทุกอันอยู่ subcat เดียวกัน แสดงชื่อนั้น
+    let subcatLabel = '';
+    if (matched.length > 0) {
+      const uniqueSubs = [...new Set(matched.map((s) => s.skill_subcategory_name_th).filter(Boolean))];
+      if (uniqueSubs.length === 1) subcatLabel = uniqueSubs[0];
+    }
 
     const totalJobs = w.worker_total_jobs ?? 0;
 
@@ -181,20 +278,19 @@
           ${UI.avatar({ user_name: w.user_name, user_image: w.user_image }, 'md')}
           <div class="worker-card__head-info">
             <h4 class="worker-card__name">${UI.escapeHtml(name)}</h4>
-            ${matchedSkill.skill_category_name_th
+            ${categoryLabel
               ? `<div class="worker-card__category">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                  สาขา: <strong>${UI.escapeHtml(matchedSkill.skill_category_name_th)}</strong>
+                  สาขา: <strong>${UI.escapeHtml(categoryLabel)}</strong>
                 </div>`
               : ''}
           </div>
         </div>
 
         <div class="worker-card__skills">
-          <div class="worker-card__skills-label">ความสามารถ${matchedSkill.skill_subcategory_name_th ? ' · ' + UI.escapeHtml(matchedSkill.skill_subcategory_name_th) : ''}</div>
+          <div class="worker-card__skills-label">ความสามารถ${subcatLabel ? ' · ' + UI.escapeHtml(subcatLabel) : ''} <span class="text-faint">(${allSkills.length} สกิล)</span></div>
           <div class="chip-group">
-            ${matchedChip}
-            ${otherChips}
+            ${chipsHtml}
             ${moreChip}
           </div>
         </div>
