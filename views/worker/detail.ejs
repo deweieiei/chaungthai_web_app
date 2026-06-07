@@ -1,6 +1,16 @@
 <%- include('../partials/head') %>
 <div class="app-shell app-shell--with-header">
-  <%- include('../partials/header', { title: 'รายละเอียดช่าง', back: true }) %>
+  <header class="app-header">
+    <button type="button" class="app-header__back" onclick="history.back()" aria-label="ย้อนกลับ">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <h1 class="app-header__title">รายละเอียดช่าง</h1>
+    <button type="button" class="app-header__action fav-btn" id="fav-btn" aria-label="ติดดาวช่าง" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+    </button>
+  </header>
   <div class="page-content" id="detail-content" data-worker-id="<%= workerId %>">
     <div class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>
   </div>

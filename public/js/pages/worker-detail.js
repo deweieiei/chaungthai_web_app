@@ -226,11 +226,54 @@
     });
   }
 
+  function bindFavoriteButton(d) {
+    const btn = document.getElementById('fav-btn');
+    if (!btn) return;
+    // ไม่โชว์ปุ่มถ้าเป็นตัวเอง
+    const meUser = Auth.getUser();
+    const isSelf = meUser && meUser.user_id === d.user.user_id;
+    if (isSelf) {
+      btn.hidden = true;
+      return;
+    }
+    btn.hidden = false;
+
+    let isFav = !!d.is_favorited;
+    function paint() {
+      btn.classList.toggle('fav-btn--on', isFav);
+      btn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+      btn.setAttribute('aria-label', isFav ? 'ปลดดาวช่าง' : 'ติดดาวช่าง');
+    }
+    paint();
+
+    btn.addEventListener('click', async () => {
+      // optimistic
+      const prev = isFav;
+      isFav = !isFav;
+      paint();
+      try {
+        if (isFav) {
+          await Api.post('/favorites/workers/' + workerId);
+          UI.toast('ติดดาวช่างคนนี้แล้ว', 'success');
+        } else {
+          await Api.delete('/favorites/workers/' + workerId);
+          UI.toast('ปลดดาวแล้ว', 'info');
+        }
+      } catch (err) {
+        // rollback
+        isFav = prev;
+        paint();
+        UI.toast(err.message || 'ทำรายการไม่สำเร็จ', 'danger');
+      }
+    });
+  }
+
   (async () => {
     try {
       const res = await Api.get('/workers/' + workerId);
       render(res);
       bindHireButton(res);
+      bindFavoriteButton(res);
     } catch (err) {
       const status = err.status;
       root.innerHTML = `<div class="empty-state">
