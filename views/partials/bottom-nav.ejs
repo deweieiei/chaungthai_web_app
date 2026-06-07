@@ -19,7 +19,7 @@
   <a href="/chat" class="bottom-nav__item<%= activeCls('chat') %>" aria-current="<%= tab === 'chat' ? 'page' : 'false' %>">
     <span class="bottom-nav__icon" aria-hidden="true">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="bottom-nav__badge" aria-label="ยังไม่เปิดใช้งานจริง">อนาคต</span>
+      <span class="bottom-nav__badge bottom-nav__badge--count" id="chat-unread-badge" hidden></span>
     </span>
     <span>แชต</span>
   </a>

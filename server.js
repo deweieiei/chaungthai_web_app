@@ -187,6 +187,12 @@ app.get('/search-workers', (req, res) =>
 app.get('/chat', (req, res) =>
   page(req, res, 'chat', { title: 'แชต', activeTab: 'chat' })
 );
+app.get('/chat/:user_id(\\d+)', (req, res) =>
+  page(req, res, 'chat/room', {
+    title: 'แชต',
+    targetUserId: req.params.user_id,
+  })
+);
 
 // ============================================================
 //  Health
@@ -223,13 +229,65 @@ app.use((err, req, res, _next) => {
 
 // ============================================================
 //  Start
+//  ใช้ http.createServer(app) เพื่อ hook 'upgrade' event ของ WebSocket
+//  → forward WS handshake ไปยัง API (เพื่อให้ socket.io ของ API ใช้งานได้)
 // ============================================================
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+server.on('upgrade', (req, clientSocket, head) => {
+  // อนุญาตเฉพาะ /api/* (socket.io ใช้ /api/socket.io)
+  if (!req.url || !req.url.startsWith('/api/')) {
+    clientSocket.destroy();
+    return;
+  }
+
+  const lib = isHttps ? https : http;
+  const upstreamOpts = {
+    hostname: TARGET_URL.hostname,
+    port: TARGET_URL.port || (isHttps ? 443 : 80),
+    method: 'GET',
+    path: req.url,
+    headers: { ...req.headers, host: TARGET_URL.host },
+    agent: upstreamAgent,
+  };
+
+  const upstreamReq = lib.request(upstreamOpts);
+
+  upstreamReq.on('upgrade', (upstreamRes, upstreamSocket, upstreamHead) => {
+    // ตอบกลับ client ด้วย 101 Switching Protocols จาก upstream
+    const headers = ['HTTP/1.1 101 Switching Protocols'];
+    for (const [k, v] of Object.entries(upstreamRes.headers)) {
+      if (Array.isArray(v)) {
+        for (const vv of v) headers.push(`${k}: ${vv}`);
+      } else {
+        headers.push(`${k}: ${v}`);
+      }
+    }
+    clientSocket.write(headers.join('\r\n') + '\r\n\r\n');
+
+    // pipe สองทาง
+    if (upstreamHead && upstreamHead.length) clientSocket.write(upstreamHead);
+    if (head && head.length) upstreamSocket.write(head);
+
+    upstreamSocket.on('error', () => clientSocket.destroy());
+    clientSocket.on('error', () => upstreamSocket.destroy());
+    upstreamSocket.pipe(clientSocket).pipe(upstreamSocket);
+  });
+
+  upstreamReq.on('error', (err) => {
+    console.error('[WS proxy error]', err.code, err.message, '|', req.url);
+    clientSocket.destroy();
+  });
+
+  upstreamReq.end();
+});
+
+server.listen(PORT, () => {
   console.log('============================================');
   console.log(`  ChaungThai Web v0.2.0`);
   console.log(`  ${new Date().toISOString()}`);
   console.log(`  http://localhost:${PORT}`);
-  console.log(`  API proxy → ${API_TARGET}/api/*`);
+  console.log(`  API proxy → ${API_TARGET}/api/*  (incl. WS upgrade)`);
   console.log(`  Env: ${process.env.NODE_ENV || 'development'}`);
   console.log('============================================');
 });

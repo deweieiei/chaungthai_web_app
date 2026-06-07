@@ -1,0 +1,40 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-header chat-page">
+  <header class="app-header chat-header">
+    <button type="button" class="app-header__back" onclick="history.back()" aria-label="ย้อนกลับ">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <a href="#" class="chat-header__peer" id="chat-peer-link" aria-label="ดูโปรไฟล์">
+      <span class="chat-header__avatar" id="chat-peer-avatar">
+        <span class="avatar avatar--sm">?</span>
+      </span>
+      <span class="chat-header__info">
+        <span class="chat-header__name" id="chat-peer-name">กำลังโหลด...</span>
+        <span class="chat-header__status text-tiny text-muted" id="chat-peer-status"></span>
+      </span>
+    </a>
+    <span class="app-header__action" aria-hidden="true"></span>
+  </header>
+
+  <div class="chat-body" id="chat-body" data-target-user-id="<%= targetUserId %>">
+    <div class="loading-block"><div class="spinner"></div><div>กำลังเปิดห้องแชต...</div></div>
+  </div>
+
+  <form class="chat-composer" id="chat-composer" autocomplete="off">
+    <textarea
+      id="chat-input"
+      class="chat-composer__input"
+      placeholder="พิมพ์ข้อความ..."
+      rows="1"
+      maxlength="4000"
+      disabled
+    ></textarea>
+    <button type="submit" class="chat-composer__send" id="chat-send" disabled aria-label="ส่ง">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+    </button>
+  </form>
+</div>
+
+<!-- Socket.io client (CDN — pin version เพื่อกัน breaking change) -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+<%- include('../partials/foot', { pageScript: 'chat-room' }) %>

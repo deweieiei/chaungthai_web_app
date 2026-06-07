@@ -37,17 +37,34 @@
       (groups[k] = groups[k] || []).push(s);
     }
 
-    const phoneSection = u.user_phone
-      ? `<a href="tel:${UI.escapeHtml(u.user_phone)}" class="card-list">
-           <div class="card-list__item">
-             <span class="card-list__icon" style="color: var(--success); font-size: 22px;">📞</span>
-             <div class="card-list__main">
-               <div class="card-list__label">โทรหา</div>
-               <div class="card-list__value text-bold">${UI.escapeHtml(u.user_phone)}</div>
-             </div>
-             <span class="card-list__trail">›</span>
+    // เช็คว่าเป็น "ตัวเอง" ไหม — ไม่งั้นโชว์ปุ่มแชตกับตัวเองได้
+    const meUser = Auth.getUser();
+    const isSelf = meUser && meUser.user_id === u.user_id;
+
+    const phoneRow = u.user_phone
+      ? `<a href="tel:${UI.escapeHtml(u.user_phone)}" class="card-list__item">
+           <span class="card-list__icon" style="color: var(--success); font-size: 22px;">📞</span>
+           <div class="card-list__main">
+             <div class="card-list__label">โทรหา</div>
+             <div class="card-list__value text-bold">${UI.escapeHtml(u.user_phone)}</div>
            </div>
+           <span class="card-list__trail">›</span>
          </a>`
+      : '';
+
+    const chatRow = !isSelf
+      ? `<a href="/chat/${u.user_id}" class="card-list__item">
+           <span class="card-list__icon" style="color: var(--primary); font-size: 22px;">💬</span>
+           <div class="card-list__main">
+             <div class="card-list__label">ส่งข้อความ</div>
+             <div class="card-list__value text-bold">พูดคุยทางแชต</div>
+           </div>
+           <span class="card-list__trail">›</span>
+         </a>`
+      : '';
+
+    const phoneSection = (phoneRow || chatRow)
+      ? `<div class="card-list">${phoneRow}${chatRow}</div>`
       : '';
 
     // สถานะตรวจประวัติอาชญากรรม (card)
