@@ -165,9 +165,21 @@
       portfolioCard = resumeBlock + imagesBlock;
     }
 
+    // ปุ่มดาว — ใต้รูป (ซ่อนถ้าเป็นตัวเอง)
+    const favButtonHtml = !isSelf ? `
+      <div style="display: flex; justify-content: center; margin-top: var(--space-sm);">
+        <button type="button" class="fav-pill" id="fav-btn" aria-pressed="false" aria-label="ติดดาวช่าง">
+          <svg class="fav-pill__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span class="fav-pill__label">ติดดาว</span>
+        </button>
+      </div>` : '';
+
     root.innerHTML = `
       <div class="text-center">
         ${UI.avatar({ user_name: u.user_name, user_image: u.user_image }, 'xl')}
+        ${favButtonHtml}
         <h2 style="margin-top: var(--space-sm);">${UI.escapeHtml(fullName)}</h2>
         <div class="chip-group" style="justify-content: center;">${verifiedBadges.join('')}</div>
       </div>
@@ -229,25 +241,18 @@
   function bindFavoriteButton(d) {
     const btn = document.getElementById('fav-btn');
     if (!btn) return;
-    // ไม่โชว์ปุ่มถ้าเป็นตัวเอง
-    const meUser = Auth.getUser();
-    const isSelf = meUser && meUser.user_id === d.user.user_id;
-    if (isSelf) {
-      btn.hidden = true;
-      return;
-    }
-    btn.hidden = false;
 
     let isFav = !!d.is_favorited;
+    const labelEl = btn.querySelector('.fav-pill__label');
     function paint() {
-      btn.classList.toggle('fav-btn--on', isFav);
+      btn.classList.toggle('fav-pill--on', isFav);
       btn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
       btn.setAttribute('aria-label', isFav ? 'ปลดดาวช่าง' : 'ติดดาวช่าง');
+      if (labelEl) labelEl.textContent = isFav ? 'ติดดาวแล้ว' : 'ติดดาว';
     }
     paint();
 
     btn.addEventListener('click', async () => {
-      // optimistic
       const prev = isFav;
       isFav = !isFav;
       paint();

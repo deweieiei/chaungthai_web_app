@@ -26,12 +26,28 @@
 
   function favCard(f) {
     const fullName = ((f.user_name || '') + ' ' + (f.user_lastname || '')).trim() || 'ช่าง';
+
+    // แสดงสาขาช่าง (categories) — ถ้ามีหลายอันใส่ +N
+    const cats = Array.isArray(f.skill_categories) ? f.skill_categories : [];
+    let skillsHtml = '';
+    if (cats.length > 0) {
+      const shown = cats.slice(0, 2);
+      const more = cats.length - shown.length;
+      skillsHtml = `
+        <div class="fav-card__skills">
+          ${shown.map((c) => `<span class="fav-card__skill-chip">${UI.escapeHtml(c)}</span>`).join('')}
+          ${more > 0 ? `<span class="fav-card__skill-chip fav-card__skill-chip--more">+${more}</span>` : ''}
+        </div>`;
+    } else {
+      skillsHtml = '<div class="fav-card__skills"><span class="fav-card__skill-chip fav-card__skill-chip--empty">ยังไม่ระบุสกิล</span></div>';
+    }
+
     return `
       <div class="fav-card">
         <a class="fav-card__link" href="/worker/${f.worker_id}">
           ${UI.avatar({ user_name: f.user_name, user_image: f.user_image }, 'lg')}
           <div class="fav-card__name">${UI.escapeHtml(fullName)}</div>
-          ${f.user_identity_verified_at ? '<div class="fav-card__verified">🪪 ยืนยันแล้ว</div>' : ''}
+          ${skillsHtml}
         </a>
         <div class="fav-card__actions">
           <a href="/chat/${f.user_id}" class="fav-card__btn" aria-label="แชต" title="แชต">💬</a>

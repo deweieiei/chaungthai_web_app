@@ -2551,25 +2551,49 @@
 }
 
 /* ============================================================
-   Favorite worker — ปุ่มดาวที่ header + section บน /home
+   Favorite worker — ปุ่มดาว (pill) + section บน /home
 ============================================================ */
-/* ปุ่มดาวที่ app-header */
-.fav-btn {
-  color: var(--text-faint);
-  transition: color var(--duration-fast) var(--ease-out);
+/* ปุ่ม pill ใต้ avatar ในหน้า worker/detail */
+.fav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-round);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
 }
 
-.fav-btn svg {
-  transition: fill var(--duration-fast) var(--ease-out);
-}
-
-.fav-btn--on {
+.fav-pill:hover {
+  border-color: var(--warning);
   color: var(--warning);
 }
 
-.fav-btn--on svg {
+.fav-pill:active {
+  transform: scale(0.96);
+}
+
+.fav-pill__icon {
+  transition: fill var(--duration-fast) var(--ease-out);
+}
+
+.fav-pill--on {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.fav-pill--on .fav-pill__icon {
   fill: var(--warning);
-  stroke: var(--warning);
 }
 
 /* section บน /home */
@@ -2644,6 +2668,40 @@
   font-size: 0.65rem;
   color: var(--success);
   font-weight: 600;
+}
+
+/* chip บอกสาขาช่าง */
+.fav-card__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.fav-card__skill-chip {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-round);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-card__skill-chip--more {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.fav-card__skill-chip--empty {
+  background: transparent;
+  color: var(--text-faint);
+  font-weight: 400;
 }
 
 .fav-card__actions {
