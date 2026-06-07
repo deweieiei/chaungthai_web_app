@@ -13,6 +13,43 @@
   const btnSearch = document.getElementById('search-btn');
   const elResults = document.getElementById('results-area');
 
+  // collapsible form
+  const elFormWrap = document.getElementById('search-form-wrap');
+  const elSummary = document.getElementById('search-summary');
+  const elSummaryText = document.getElementById('search-summary-text');
+  const btnEdit = document.getElementById('search-edit-btn');
+
+  function selectedOptionText(sel) {
+    if (!sel || !sel.value) return null;
+    const opt = sel.options[sel.selectedIndex];
+    return opt ? opt.text : null;
+  }
+
+  function collapseForm() {
+    const parts = [];
+    // พื้นที่
+    const prov = selectedOptionText(elProvince);
+    const dist = selectedOptionText(elDistrict);
+    const sub = selectedOptionText(elSubdistrict);
+    const areaParts = [sub, dist, prov].filter(Boolean);
+    if (areaParts.length) parts.push('📍 ' + areaParts.join(' · '));
+    // สกิล
+    const skillText = selectedOptionText(elSkill)
+      || selectedOptionText(elSubcategory)
+      || selectedOptionText(elCategory);
+    if (skillText) parts.push('🔧 ' + skillText);
+    elSummaryText.textContent = parts.join('  ·  ') || 'ค้นหาทั้งหมด';
+    elFormWrap.hidden = true;
+    elSummary.hidden = false;
+  }
+
+  function expandForm() {
+    elSummary.hidden = true;
+    elFormWrap.hidden = false;
+  }
+
+  btnEdit.addEventListener('click', expandForm);
+
   // เก็บ skill tree ทั้งหมดใน memory เพื่อ cascade
   let skillTree = null;
   // index ช่วย lookup เร็ว
@@ -173,6 +210,8 @@
 
       const res = await Api.get('/workers/search', { query });
       renderResults(res);
+      // สำเร็จ → ย่อ form
+      collapseForm();
     } catch (err) {
       elResults.innerHTML = `<div class="empty-state">
         <div class="empty-state__icon">⚠</div>
@@ -193,6 +232,53 @@
 
   // เก็บ filter ปัจจุบันสำหรับ matching ใน worker card
   let currentFilter = null;
+
+  // โหลด favorites ของฉัน (Set ของ worker_id) — ใช้แสดงสถานะปุ่มดาวในผลลัพธ์
+  let favoriteIds = new Set();
+  async function loadFavoriteIds() {
+    try {
+      const res = await Api.get('/favorites/workers');
+      favoriteIds = new Set((res.favorites || []).map((f) => Number(f.worker_id)));
+    } catch {
+      // เงียบ — favorites ไม่ critical
+    }
+  }
+  loadFavoriteIds();
+
+  // toggle ดาว — กดจากในผลลัพธ์ (ไม่นำทางไปหน้าโปรไฟล์)
+  async function toggleFav(workerId, btn) {
+    const wid = Number(workerId);
+    const wasOn = favoriteIds.has(wid);
+    // optimistic
+    if (wasOn) favoriteIds.delete(wid);
+    else favoriteIds.add(wid);
+    paintFavBtn(btn, !wasOn);
+    try {
+      if (wasOn) await Api.delete('/favorites/workers/' + wid);
+      else await Api.post('/favorites/workers/' + wid);
+    } catch (err) {
+      // rollback
+      if (wasOn) favoriteIds.add(wid);
+      else favoriteIds.delete(wid);
+      paintFavBtn(btn, wasOn);
+      UI.toast(err.message || 'ทำรายการไม่สำเร็จ', 'danger');
+    }
+  }
+
+  function paintFavBtn(btn, isOn) {
+    btn.classList.toggle('worker-card__fav--on', isOn);
+    btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+    btn.setAttribute('aria-label', isOn ? 'ปลดดาว' : 'ติดดาว');
+  }
+
+  // delegated click — ปุ่มดาวในผลลัพธ์
+  elResults.addEventListener('click', (e) => {
+    const favBtn = e.target.closest('.worker-card__fav');
+    if (!favBtn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFav(favBtn.dataset.workerId, favBtn);
+  });
 
   function renderResults(res) {
     currentFilter = res.filter || {};
@@ -281,8 +367,18 @@
 
     const totalJobs = w.worker_total_jobs ?? 0;
 
+    const isFav = favoriteIds.has(Number(w.worker_id));
     return `
       <a href="/worker/${w.worker_id}" class="worker-card worker-card--rich">
+        <button type="button"
+          class="worker-card__fav${isFav ? ' worker-card__fav--on' : ''}"
+          data-worker-id="${w.worker_id}"
+          aria-pressed="${isFav ? 'true' : 'false'}"
+          aria-label="${isFav ? 'ปลดดาว' : 'ติดดาว'}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
         <div class="worker-card__head">
           ${UI.avatar({ user_name: w.user_name, user_image: w.user_image }, 'md')}
           <div class="worker-card__head-info">
