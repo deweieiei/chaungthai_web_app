@@ -6,15 +6,13 @@
   const me = Auth.getUser();
   const meId = me && me.user_id;
 
-  // status ที่ "ยังไม่จบ" (active) vs "จบแล้ว" (history)
   const ACTIVE_STATUS = 'pending,not_started,in_progress';
   const HISTORY_STATUS = 'completed,declined,cancelled';
 
-  // config ของแต่ละ tab
   const TAB_CONFIG = {
     worker:   { role: 'worker',   status: ACTIVE_STATUS },
     employer: { role: 'employer', status: ACTIVE_STATUS },
-    history:  { role: null,       status: HISTORY_STATUS }, // ทั้ง 2 role
+    history:  { role: null,       status: HISTORY_STATUS },
   };
 
   const tabs = document.querySelectorAll('#job-tabs .tab-segment__btn');
@@ -36,29 +34,55 @@
       return {
         name: ((j.employer_name || '') + ' ' + (j.employer_lastname || '')).trim(),
         image: j.employer_image,
-        label: 'ผู้ว่าจ้าง',
-        myRole: 'worker',
+        peerLabel: 'ผู้ว่าจ้าง',
+        myRole: 'worker',     // ฉันคือช่าง (ถูกจ้าง)
       };
     }
     return {
       name: ((j.worker_name || '') + ' ' + (j.worker_lastname || '')).trim(),
       image: j.worker_image,
-      label: 'ช่าง',
-      myRole: 'employer',
+      peerLabel: 'ช่าง',
+      myRole: 'employer',     // ฉันคือผู้ว่าจ้าง
     };
+  }
+
+  // ป้าย "ยกเลิกโดยใคร" — เปลี่ยน user_id เป็น role ของคนในงาน
+  function cancelledByLabel(j) {
+    if (j.job_status !== 'cancelled' && j.job_status !== 'declined') return null;
+    if (!j.job_cancelled_by) return null;
+    const byId = j.job_cancelled_by;
+    const role = byId === j.job_employer_id ? 'employer' : 'worker';
+    const youOrThem = byId === meId
+      ? 'คุณ'
+      : (role === 'employer' ? 'ผู้ว่าจ้าง' : 'ช่าง');
+    if (j.job_status === 'declined') return `ปฏิเสธโดย${youOrThem}`;
+    return `ยกเลิกโดย${youOrThem}`;
   }
 
   function renderCard(j) {
     const peer = peerOf(j);
+    const cancelText = cancelledByLabel(j);
+
+    // chip บอก role ของฉันในงานนี้ (เด่นชัด สำหรับแท็บประวัติที่ปนกัน)
+    const roleChip = peer.myRole === 'employer'
+      ? '<span class="job-card__role job-card__role--employer">💼 ฉันจ้าง</span>'
+      : '<span class="job-card__role job-card__role--worker">🔨 ฉันรับ</span>';
+
+    const cardCls = 'job-card' +
+      (peer.myRole === 'employer' ? ' job-card--employer' : ' job-card--worker');
+
     return `
-      <a href="/jobs/${j.job_id}" class="job-card">
+      <a href="/jobs/${j.job_id}" class="${cardCls}">
+        <div class="job-card__role-row">
+          ${roleChip}
+          ${JobHelpers.statusBadge(j.job_status)}
+        </div>
         <div class="job-card__head">
           ${UI.avatar({ user_name: peer.name, user_image: peer.image }, 'sm')}
           <div class="job-card__head-info">
-            <div class="text-tiny text-muted">${peer.label}</div>
+            <div class="text-tiny text-muted">${peer.peerLabel}</div>
             <div class="job-card__peer">${UI.escapeHtml(peer.name || 'ผู้ใช้')}</div>
           </div>
-          ${JobHelpers.statusBadge(j.job_status)}
         </div>
         <div class="job-card__detail">${UI.escapeHtml(j.job_detail.length > 100 ? j.job_detail.slice(0, 100) + '...' : j.job_detail)}</div>
         <div class="job-card__meta">
@@ -66,6 +90,7 @@
           <span class="text-muted">·</span>
           <span class="text-muted text-small">${JobHelpers.formatDate(j.job_start_date)} → ${JobHelpers.formatDate(j.job_deadline)}</span>
         </div>
+        ${cancelText ? `<div class="job-card__cancel-note">⚠ ${UI.escapeHtml(cancelText)}</div>` : ''}
       </a>
     `;
   }

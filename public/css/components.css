@@ -2354,6 +2354,7 @@
   display: block;
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left-width: 4px;
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   margin-bottom: var(--space-sm);
@@ -2365,6 +2366,53 @@
 
 .job-card:active {
   transform: scale(0.99);
+}
+
+/* แยก visual ตาม role — ฉันจ้าง vs ฉันรับ */
+.job-card--employer {
+  border-left-color: var(--primary);
+}
+
+.job-card--worker {
+  border-left-color: var(--info);
+  background: linear-gradient(to right, var(--info-soft) 0%, transparent 30%);
+}
+
+.job-card__role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.job-card__role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-round);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.job-card__role--employer {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.job-card__role--worker {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.job-card__cancel-note {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.8rem;
+  color: var(--danger);
 }
 
 .job-card__head {
@@ -2444,5 +2492,16 @@
 .job-detail__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.job-detail__cancel-note {
+  background: var(--danger-soft);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
   margin-bottom: var(--space-md);
 }

@@ -58,11 +58,34 @@
       ? `<div class="text-tiny text-muted" style="margin-top: -4px;">บัตรรับงานคงเหลือ ${job.worker_job_tickets} ใบ · จะหัก 1 ใบเมื่อกดรับ</div>`
       : '';
 
+    // chip "ฉันจ้าง / ฉันรับ" ที่บอก role ของฉัน
+    const roleChip = myRole === 'employer'
+      ? '<span class="job-card__role job-card__role--employer">💼 ฉันจ้าง</span>'
+      : myRole === 'worker'
+        ? '<span class="job-card__role job-card__role--worker">🔨 ฉันรับ</span>'
+        : '';
+
+    // ป้ายยกเลิก/ปฏิเสธโดยใคร
+    let cancelNote = '';
+    if (job.job_status === 'cancelled' || job.job_status === 'declined') {
+      const byId = job.job_cancelled_by;
+      let byLabel = 'ไม่ทราบ';
+      if (byId) {
+        const byRole = byId === job.job_employer_id ? 'employer' : 'worker';
+        byLabel = byId === meId
+          ? 'คุณ'
+          : (byRole === 'employer' ? 'ผู้ว่าจ้าง' : 'ช่าง');
+      }
+      const verb = job.job_status === 'declined' ? 'ปฏิเสธ' : 'ยกเลิก';
+      cancelNote = `<div class="job-detail__cancel-note">⚠ ${verb}โดย${byLabel}</div>`;
+    }
+
     root.innerHTML = `
       <div class="job-detail__header">
+        ${roleChip}
         ${JobHelpers.statusBadge(job.job_status)}
-        ${job.job_cancelled_by ? '<span class="text-tiny text-muted" style="margin-left:8px;">ยกเลิกโดย ' + (job.job_cancelled_by === meId ? 'คุณ' : peer.label) + '</span>' : ''}
       </div>
+      ${cancelNote}
 
       <div class="card">
         <div class="card__title">${UI.escapeHtml(peer.label)}</div>
