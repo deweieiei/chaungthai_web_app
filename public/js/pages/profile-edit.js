@@ -18,6 +18,12 @@
   document.getElementById('bio').value = u.user_bio || '';
   document.getElementById('address').value = u.user_address || '';
 
+  // sort ภาษาไทย (ก-ฮ)
+  const TH_COLLATOR = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
+  function sortBy(arr, key) {
+    return [...arr].sort((a, b) => TH_COLLATOR.compare(a[key] || '', b[key] || ''));
+  }
+
   function fillSelect(el, items, valueKey, labelKey, current) {
     el.innerHTML = '<option value="">-- เลือก --</option>' +
       items.map((it) =>
@@ -28,7 +34,8 @@
   async function loadProvinces() {
     try {
       const res = await Api.get('/locations/provinces');
-      fillSelect(elProvince, res.provinces, 'province_id', 'province_name_th', u.user_province_id);
+      const items = sortBy(res.provinces, 'province_name_th');
+      fillSelect(elProvince, items, 'province_id', 'province_name_th', u.user_province_id);
       if (u.user_province_id) loadDistricts(u.user_province_id, u.user_district_id);
     } catch (err) {
       UI.toast('โหลดจังหวัดไม่ได้', 'danger');
@@ -47,7 +54,8 @@
     elDistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
     try {
       const res = await Api.get('/locations/districts', { query: { province_id: provinceId } });
-      fillSelect(elDistrict, res.districts, 'district_id', 'district_name_th', current);
+      const items = sortBy(res.districts, 'district_name_th');
+      fillSelect(elDistrict, items, 'district_id', 'district_name_th', current);
       if (current) loadSubdistricts(current, u.user_subdistrict_id);
       else {
         elSubdistrict.disabled = true;
@@ -68,7 +76,7 @@
     elSubdistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
     try {
       const res = await Api.get('/locations/subdistricts', { query: { district_id: districtId } });
-      const items = res.subdistricts.map((s) => ({
+      const items = sortBy(res.subdistricts, 'subdistrict_name_th').map((s) => ({
         ...s,
         label: `${s.subdistrict_name_th} (${s.subdistrict_zip_code || '-'})`,
       }));

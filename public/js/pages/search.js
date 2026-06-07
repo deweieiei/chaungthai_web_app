@@ -92,11 +92,18 @@
   });
 
   // ----- location cascade (เหมือนเดิม) -----
+  // sort ภาษาไทย (ก-ฮ) — ใช้กับทุก dropdown location
+  const TH_COLLATOR = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
+  function sortBy(arr, key) {
+    return [...arr].sort((a, b) => TH_COLLATOR.compare(a[key] || '', b[key] || ''));
+  }
+
   (async () => {
     try {
       const res = await Api.get('/locations/provinces');
+      const items = sortBy(res.provinces, 'province_name_th');
       elProvince.innerHTML = '<option value="">-- เลือกจังหวัด --</option>' +
-        res.provinces.map((p) => `<option value="${p.province_id}">${UI.escapeHtml(p.province_name_th)}</option>`).join('');
+        items.map((p) => `<option value="${p.province_id}">${UI.escapeHtml(p.province_name_th)}</option>`).join('');
     } catch (err) {
       elProvince.innerHTML = '<option value="">โหลดไม่ได้</option>';
     }
@@ -115,8 +122,9 @@
     elDistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
     try {
       const res = await Api.get('/locations/districts', { query: { province_id: id } });
+      const items = sortBy(res.districts, 'district_name_th');
       elDistrict.innerHTML = '<option value="">-- ไม่ระบุ --</option>' +
-        res.districts.map((d) => `<option value="${d.district_id}">${UI.escapeHtml(d.district_name_th)}</option>`).join('');
+        items.map((d) => `<option value="${d.district_id}">${UI.escapeHtml(d.district_name_th)}</option>`).join('');
     } catch {
       elDistrict.innerHTML = '<option value="">โหลดไม่ได้</option>';
     }
@@ -133,8 +141,9 @@
     elSubdistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
     try {
       const res = await Api.get('/locations/subdistricts', { query: { district_id: id } });
+      const items = sortBy(res.subdistricts, 'subdistrict_name_th');
       elSubdistrict.innerHTML = '<option value="">-- ไม่ระบุ --</option>' +
-        res.subdistricts.map((s) => `<option value="${s.subdistrict_id}">${UI.escapeHtml(s.subdistrict_name_th)} (${s.subdistrict_zip_code || '-'})</option>`).join('');
+        items.map((s) => `<option value="${s.subdistrict_id}">${UI.escapeHtml(s.subdistrict_name_th)} (${s.subdistrict_zip_code || '-'})</option>`).join('');
     } catch {
       elSubdistrict.innerHTML = '<option value="">โหลดไม่ได้</option>';
     }
