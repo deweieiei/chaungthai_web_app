@@ -24,17 +24,23 @@
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const confirm = document.getElementById('confirm').value;
+    const agreeEl = document.getElementById('agree');
+    const agreed = !!(agreeEl && agreeEl.checked);
 
     const errs = {
       name: UI.Validators.required(name, 'ชื่อ'),
       email: UI.Validators.email(email),
       password: UI.Validators.password(password),
       confirm: UI.Validators.match(confirm, password, 'รหัสผ่าน'),
+      agree: agreed ? null : 'กรุณายอมรับข้อตกลงและนโยบายความเป็นส่วนตัว',
     };
     let hasErr = false;
     for (const [k, v] of Object.entries(errs)) {
       if (v) { UI.setFieldError(k, v); hasErr = true; }
     }
+    // visual error สำหรับ checkbox (ไม่มี id="agree-error" แบบ field)
+    const agreeLabel = document.querySelector('label[for="agree"]');
+    if (agreeLabel) agreeLabel.classList.toggle('check--error', !agreed);
     if (hasErr) return;
 
     UI.setBtnLoading(submitBtn, true);

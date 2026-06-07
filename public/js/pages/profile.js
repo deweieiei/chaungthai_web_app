@@ -50,6 +50,11 @@
       ? '<span class="chip chip--success">✓ ยืนยันแล้ว</span>'
       : '<a href="/verify-phone" class="chip chip--warning">ยืนยัน</a>';
 
+    const isWorker = u.user_role === 'worker';
+    const workerActions = isWorker
+      ? actionRow({ icon: '🛠', label: 'แก้ไขสกิลของฉัน', href: '/worker/edit-skills' })
+      : actionRow({ icon: '📝', label: 'สมัครเป็นช่าง', href: '/become-worker' });
+
     root.innerHTML = `
       <div class="text-center" style="margin-top: var(--space-md);">
         <div style="position: relative; display: inline-block;">
@@ -69,6 +74,12 @@
         ${u.user_bio ? infoRow({ icon: 'ℹ', label: 'แนะนำตัว', value: UI.escapeHtml(u.user_bio) }) : ''}
       </div>
 
+      <h3 class="section-title">งานช่าง</h3>
+      <div class="card-list">
+        ${workerActions}
+      </div>
+
+      <h3 class="section-title">บัญชี</h3>
       <div class="card-list">
         ${actionRow({ icon: '✏', label: 'แก้ไขข้อมูลส่วนตัว', href: '/profile/edit' })}
         ${actionRow({ icon: '🔑', label: 'เปลี่ยนรหัสผ่าน', href: '/profile/password' })}

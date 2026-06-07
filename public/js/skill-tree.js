@@ -59,10 +59,10 @@
             !q || s.skill_name_th.toLowerCase().includes(q));
           return { sub, visibleSkills };
         }).filter((x) =>
-          x.visibleSkills.length > 0 || (q && x.sub.subcategory_name_th.toLowerCase().includes(q))
+          x.visibleSkills.length > 0 || (q && x.sub.skill_subcategory_name_th.toLowerCase().includes(q))
         );
 
-        if (visibleSubs.length === 0 && !(q && cat.category_name_th.toLowerCase().includes(q))) {
+        if (visibleSubs.length === 0 && !(q && cat.skill_category_name_th.toLowerCase().includes(q))) {
           return '';
         }
         const pickedInCat = cat.subcategories
@@ -72,7 +72,7 @@
 
         const subsHtml = visibleSubs.map(({ sub, visibleSkills }) => `
           <div class="skill-sub">
-            <div class="skill-sub__title">${UI.escapeHtml(sub.subcategory_name_th)}</div>
+            <div class="skill-sub__title">${UI.escapeHtml(sub.skill_subcategory_name_th)}</div>
             ${visibleSkills.map((sk) => `
               <label class="skill-item">
                 <input type="checkbox" data-skill-id="${sk.skill_id}" ${selected.has(sk.skill_id) ? 'checked' : ''}>
@@ -85,7 +85,7 @@
         return `
           <div class="skill-cat">
             <button type="button" class="skill-cat__head" aria-expanded="${expanded ? 'true' : 'false'}">
-              <span>${UI.escapeHtml(cat.category_name_th)}</span>
+              <span>${UI.escapeHtml(cat.skill_category_name_th)}</span>
               ${pickedInCat > 0 ? `<span class="text-small text-primary" style="margin-left: 6px;">(${pickedInCat})</span>` : ''}
               <span class="skill-cat__caret">›</span>
             </button>

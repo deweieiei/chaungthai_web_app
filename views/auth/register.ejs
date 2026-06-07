@@ -48,11 +48,19 @@
         <div class="field__error" id="confirm-error"></div>
       </div>
 
-      <button type="submit" class="btn btn--primary btn--block btn--lg" style="margin-top: var(--space-lg);">สมัครสมาชิก</button>
+      <div class="field" style="margin-top: var(--space-md);">
+        <label class="check" for="agree">
+          <input type="checkbox" id="agree" name="agree">
+          <span class="check__box" aria-hidden="true"></span>
+          <span class="check__label">
+            ฉันยอมรับ <a href="/terms" target="_blank" rel="noopener">ข้อตกลงการใช้งาน</a>
+            และ <a href="/privacy" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a>
+          </span>
+        </label>
+        <div class="field__error" id="agree-error"></div>
+      </div>
 
-      <p class="text-tiny text-faint text-center" style="margin-top: var(--space-md);">
-        การสมัครถือว่ายอมรับข้อตกลงและนโยบายความเป็นส่วนตัว
-      </p>
+      <button type="submit" class="btn btn--primary btn--block btn--lg" style="margin-top: var(--space-md);">สมัครสมาชิก</button>
     </form>
 
     <div class="divider">มีบัญชีอยู่แล้ว?</div>
