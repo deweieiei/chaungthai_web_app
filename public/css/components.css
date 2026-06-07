@@ -2592,28 +2592,69 @@
 }
 
 /* ============================================================
-   Search — summary bar ตอน form ถูกย่อ
+   Collapsible field — <select> ที่ย่อเป็น pill หลังเลือกแล้ว
+   (ใช้ในหน้า /search-workers)
 ============================================================ */
-.search-summary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: 10px var(--space-md);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-md);
-  box-shadow: var(--shadow-xs);
+.field--collapsible {
+  /* nothing special — pill อยู่ข้างใน */
 }
 
-.search-summary__text {
-  flex: 1;
-  font-size: 0.9rem;
+/* ตอน collapsed: ซ่อน label + select, โชว์ pill แทน */
+.field--collapsed > .field__label,
+.field--collapsed > .select,
+.field--collapsed > .field__error {
+  display: none;
+}
+
+.field__pill {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-tint);
+  border-radius: var(--radius-md);
   color: var(--text);
+  font-family: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.field__pill:hover {
+  background: var(--primary-tint);
+}
+
+.field--collapsed > .field__pill {
+  display: flex;
+}
+
+.field__pill-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.field__pill-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.field__pill-value {
+  flex: 1;
+  font-weight: 700;
+  color: var(--primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 500;
+}
+
+.field__pill-edit {
+  flex-shrink: 0;
+  color: var(--primary);
+  opacity: 0.7;
 }
 
 /* ============================================================

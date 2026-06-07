@@ -13,42 +13,62 @@
   const btnSearch = document.getElementById('search-btn');
   const elResults = document.getElementById('results-area');
 
-  // collapsible form
-  const elFormWrap = document.getElementById('search-form-wrap');
-  const elSummary = document.getElementById('search-summary');
-  const elSummaryText = document.getElementById('search-summary-text');
-  const btnEdit = document.getElementById('search-edit-btn');
+  // ---------- Collapsible field ----------
+  // เมื่อ <select> มีค่า → ซ่อน <select> + แสดง summary pill (icon + label + value + ✎)
+  // กด pill → กลับมาขยาย <select> และเปิด dropdown ให้เลย
+  function makeCollapsible(select, icon, labelText) {
+    const field = select.closest('.field');
+    if (!field) return;
+    field.classList.add('field--collapsible');
 
-  function selectedOptionText(sel) {
-    if (!sel || !sel.value) return null;
-    const opt = sel.options[sel.selectedIndex];
-    return opt ? opt.text : null;
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'field__pill';
+    pill.innerHTML = `
+      <span class="field__pill-icon">${icon}</span>
+      <span class="field__pill-label">${UI.escapeHtml(labelText)}:</span>
+      <span class="field__pill-value"></span>
+      <svg class="field__pill-edit" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+    `;
+    field.appendChild(pill);
+
+    const valueEl = pill.querySelector('.field__pill-value');
+
+    function paint() {
+      const opt = select.options[select.selectedIndex];
+      const val = select.value;
+      const text = (val && opt) ? opt.text : '';
+      if (text && val) {
+        valueEl.textContent = text;
+        field.classList.add('field--collapsed');
+      } else {
+        field.classList.remove('field--collapsed');
+      }
+    }
+
+    pill.addEventListener('click', () => {
+      field.classList.remove('field--collapsed');
+      // focus + เปิด dropdown ทันที (รองรับ browser ใหม่)
+      requestAnimationFrame(() => {
+        select.focus();
+        if (typeof select.showPicker === 'function') {
+          try { select.showPicker(); } catch {}
+        }
+      });
+    });
+
+    select.addEventListener('change', paint);
+    // sync ทันที (เผื่อมีค่า default)
+    paint();
   }
 
-  function collapseForm() {
-    const parts = [];
-    // พื้นที่
-    const prov = selectedOptionText(elProvince);
-    const dist = selectedOptionText(elDistrict);
-    const sub = selectedOptionText(elSubdistrict);
-    const areaParts = [sub, dist, prov].filter(Boolean);
-    if (areaParts.length) parts.push('📍 ' + areaParts.join(' · '));
-    // สกิล
-    const skillText = selectedOptionText(elSkill)
-      || selectedOptionText(elSubcategory)
-      || selectedOptionText(elCategory);
-    if (skillText) parts.push('🔧 ' + skillText);
-    elSummaryText.textContent = parts.join('  ·  ') || 'ค้นหาทั้งหมด';
-    elFormWrap.hidden = true;
-    elSummary.hidden = false;
-  }
-
-  function expandForm() {
-    elSummary.hidden = true;
-    elFormWrap.hidden = false;
-  }
-
-  btnEdit.addEventListener('click', expandForm);
+  // apply กับ 6 fields หลัก (apply หลัง DOM พร้อม)
+  makeCollapsible(elCategory, '🔧', 'หมวด');
+  makeCollapsible(elSubcategory, '🔧', 'สาขา');
+  makeCollapsible(elSkill, '🔧', 'สกิล');
+  makeCollapsible(elProvince, '📍', 'จังหวัด');
+  makeCollapsible(elDistrict, '📍', 'อำเภอ');
+  makeCollapsible(elSubdistrict, '📍', 'ตำบล');
 
   // เก็บ skill tree ทั้งหมดใน memory เพื่อ cascade
   let skillTree = null;
@@ -210,8 +230,6 @@
 
       const res = await Api.get('/workers/search', { query });
       renderResults(res);
-      // สำเร็จ → ย่อ form
-      collapseForm();
     } catch (err) {
       elResults.innerHTML = `<div class="empty-state">
         <div class="empty-state__icon">⚠</div>
