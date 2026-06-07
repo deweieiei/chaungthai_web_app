@@ -71,8 +71,8 @@
   makeCollapsible(elSubdistrict, '📍', 'ตำบล');
 
   // ---------- Collapsible card ----------
-  // ทั้ง card ย่อได้: กดที่ title หรือคลิกนอก card (เมื่อมีค่าใน card)
-  function makeCardCollapsible(card, opts) {
+  // title กดเพื่อ toggle เปิด/ปิด — auto collapse เมื่อเลือกครบทุก dropdown ใน card
+  function makeCardCollapsible(card) {
     const title = card.querySelector('.card__title');
     if (!title) return null;
     title.classList.add('card__title--clickable');
@@ -86,87 +86,46 @@
     });
     card.appendChild(body);
 
-    // chevron ที่ title (ปลายสุด)
+    // chevron ปลาย title
     const chevron = document.createElement('span');
     chevron.className = 'card__chevron';
     chevron.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
     title.appendChild(chevron);
 
-    // summary container (ใต้ title ตอน collapsed)
-    const summary = document.createElement('div');
-    summary.className = 'card__summary';
-    card.insertBefore(summary, body);
-
-    function refreshSummary() {
-      summary.innerHTML = opts.summary();
-    }
-
-    function collapse() {
-      if (!opts.hasValue()) return; // ไม่ย่อถ้า card ยังไม่มีค่าอะไรเลย
-      refreshSummary();
-      card.classList.add('card--collapsed');
-    }
-    function expand() {
-      card.classList.remove('card--collapsed');
-    }
-    function toggle() {
+    function collapse() { card.classList.add('card--collapsed'); }
+    function expand()   { card.classList.remove('card--collapsed'); }
+    function toggle()   {
       if (card.classList.contains('card--collapsed')) expand();
       else collapse();
     }
 
     title.addEventListener('click', toggle);
-
-    // auto-collapse เมื่อ click ที่อื่นนอก card + มีค่าใน card
-    document.addEventListener('mousedown', (e) => {
-      if (card.contains(e.target)) return;
-      if (card.classList.contains('card--collapsed')) return;
-      collapse();
-    });
-
-    return { refreshSummary, collapse, expand };
-  }
-
-  function chip(label, value) {
-    return `<span class="card__summary-chip">${UI.escapeHtml(label)}: ${UI.escapeHtml(value)}</span>`;
-  }
-  function getOptText(sel) {
-    if (!sel.value) return null;
-    const o = sel.options[sel.selectedIndex];
-    return o ? o.text : null;
+    return { collapse, expand, toggle };
   }
 
   // card 1: ความสามารถที่ต้องการ
   const skillsCard = elCategory.closest('.card');
-  const skillsCtrl = skillsCard && makeCardCollapsible(skillsCard, {
-    hasValue: () => !!(elCategory.value || elSubcategory.value || elSkill.value),
-    summary: () => {
-      const parts = [];
-      const c = getOptText(elCategory); if (c) parts.push(chip('หมวด', c));
-      const s = getOptText(elSubcategory); if (s) parts.push(chip('สาขา', s));
-      const k = getOptText(elSkill); if (k) parts.push(chip('สกิล', k));
-      return parts.join('') || '<span class="text-muted text-small">ยังไม่ได้เลือกความสามารถ</span>';
-    },
-  });
+  const skillsCtrl = skillsCard && makeCardCollapsible(skillsCard);
 
-  // card 2: พื้นที่ (มี select 3 อัน + switch auto-expand — เก็บไว้ใน body)
+  // card 2: พื้นที่
   const areaCard = elProvince.closest('.card');
-  const areaCtrl = areaCard && makeCardCollapsible(areaCard, {
-    hasValue: () => !!elProvince.value,
-    summary: () => {
-      const parts = [];
-      const p = getOptText(elProvince); if (p) parts.push(chip('จังหวัด', p));
-      const d = getOptText(elDistrict); if (d) parts.push(chip('อำเภอ', d));
-      const sd = getOptText(elSubdistrict); if (sd) parts.push(chip('ตำบล', sd));
-      return parts.join('') || '<span class="text-muted text-small">ยังไม่ได้เลือกพื้นที่</span>';
-    },
-  });
+  const areaCtrl = areaCard && makeCardCollapsible(areaCard);
 
-  // refresh summary ตอน select เปลี่ยน — เผื่อ card collapse อยู่
+  // auto collapse เมื่อ "เลือกครบทั้ง 3 dropdown" ใน card
+  function maybeCollapse(ctrl, selects) {
+    if (!ctrl) return;
+    const allFilled = selects.every((s) => s.value);
+    if (allFilled) ctrl.collapse();
+  }
   [elCategory, elSubcategory, elSkill].forEach((sel) =>
-    sel.addEventListener('change', () => skillsCtrl && skillsCtrl.refreshSummary())
+    sel.addEventListener('change', () =>
+      maybeCollapse(skillsCtrl, [elCategory, elSubcategory, elSkill])
+    )
   );
   [elProvince, elDistrict, elSubdistrict].forEach((sel) =>
-    sel.addEventListener('change', () => areaCtrl && areaCtrl.refreshSummary())
+    sel.addEventListener('change', () =>
+      maybeCollapse(areaCtrl, [elProvince, elDistrict, elSubdistrict])
+    )
   );
 
   // เก็บ skill tree ทั้งหมดใน memory เพื่อ cascade

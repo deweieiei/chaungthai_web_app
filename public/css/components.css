@@ -2614,17 +2614,6 @@
   transform: rotate(-90deg);
 }
 
-.card__summary {
-  display: none;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: var(--space-sm);
-}
-
-.card--collapsed > .card__summary {
-  display: flex;
-}
-
 .card--collapsed > .card__body {
   display: none;
 }
@@ -2633,18 +2622,8 @@
   padding-bottom: var(--space-md);
 }
 
-.card__summary-chip {
-  display: inline-block;
-  background: var(--primary-soft);
-  color: var(--primary);
-  padding: 4px 10px;
-  border-radius: var(--radius-round);
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.card--collapsed .card__title {
+  margin-bottom: 0;
 }
 
 /* ============================================================
