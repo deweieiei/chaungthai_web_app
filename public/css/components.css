@@ -2592,6 +2592,62 @@
 }
 
 /* ============================================================
+   Collapsible card — ย่อ card ทั้งใบ (title + chevron + summary)
+   (ใช้ในหน้า /search-workers)
+============================================================ */
+.card__title--clickable {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card__chevron {
+  margin-left: auto;
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.card--collapsed .card__chevron {
+  transform: rotate(-90deg);
+}
+
+.card__summary {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--space-sm);
+}
+
+.card--collapsed > .card__summary {
+  display: flex;
+}
+
+.card--collapsed > .card__body {
+  display: none;
+}
+
+.card--collapsed {
+  padding-bottom: var(--space-md);
+}
+
+.card__summary-chip {
+  display: inline-block;
+  background: var(--primary-soft);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-round);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
    Collapsible field — <select> ที่ย่อเป็น pill หลังเลือกแล้ว
    (ใช้ในหน้า /search-workers)
 ============================================================ */
