@@ -10,7 +10,6 @@
       </span>
       <span class="chat-header__info">
         <span class="chat-header__name" id="chat-peer-name">กำลังโหลด...</span>
-        <span class="chat-header__status text-tiny text-muted" id="chat-peer-status"></span>
       </span>
     </a>
     <span class="app-header__action" aria-hidden="true"></span>
@@ -19,6 +18,7 @@
   <div class="chat-body" id="chat-body" data-target-user-id="<%= targetUserId %>">
     <div class="loading-block"><div class="spinner"></div><div>กำลังเปิดห้องแชต...</div></div>
   </div>
+  <!-- typing indicator: ลบ UI แต่คง backend ไว้ — จะกลับมาเปิดได้ทีหลังถ้าต้องการ -->
 
   <form class="chat-composer" id="chat-composer" autocomplete="off">
     <textarea

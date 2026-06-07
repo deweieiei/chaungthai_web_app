@@ -7,7 +7,6 @@
   const elPeerName = document.getElementById('chat-peer-name');
   const elPeerAvatar = document.getElementById('chat-peer-avatar');
   const elPeerLink = document.getElementById('chat-peer-link');
-  const elPeerStatus = document.getElementById('chat-peer-status');
   const elInput = document.getElementById('chat-input');
   const elSend = document.getElementById('chat-send');
   const elComposer = document.getElementById('chat-composer');
@@ -32,8 +31,6 @@
   let hasMore = false;
   let loading = false;
   let socket = null;
-  let typingTimeout = null;
-  let isPeerTyping = false;
 
   // ---------- date/time helper ----------
   function timeOnly(iso) {
@@ -81,10 +78,6 @@
         <button class="btn btn--ghost btn--sm" type="button" id="chat-load-more-btn">โหลดข้อความก่อนหน้า</button>
       </div>
       <div class="chat-messages" id="chat-messages"></div>
-      <div class="chat-typing" id="chat-typing" hidden>
-        <span class="chat-typing__dots"><i></i><i></i><i></i></span>
-        <span class="text-tiny text-muted">กำลังพิมพ์...</span>
-      </div>
     `;
     document.getElementById('chat-load-more-btn').addEventListener('click', loadOlder);
   }
@@ -172,10 +165,26 @@
       { user_name: peer.user_name, user_image: peer.user_image },
       'sm'
     );
-    // ถ้า peer เป็นช่าง อาจมี worker_id — แต่ที่นี่เรามีแค่ user_id
-    // ลิงก์ไป /worker resolution ทำผ่าน worker-resolver — แต่ถ้าไม่ใช่ช่าง จะ 404
-    // เอาง่ายๆ — ลิงก์ไป "/worker-resolver?user_id=X" ไม่มี ใช้ # แทน (จะปรับปรุงทีหลัง)
+
+    // resolve worker_id ของ peer (ไม่บล็อก) → กดดูโปรไฟล์ช่างได้
+    // ถ้า peer ไม่ใช่ช่าง — กันไม่ให้ click พาไปหน้าไหน
     elPeerLink.href = '#';
+    Api.get('/workers/by-user/' + peer.user_id)
+      .then((r) => {
+        if (r && r.worker_id) {
+          elPeerLink.href = '/worker/' + r.worker_id;
+        }
+      })
+      .catch(() => {
+        // ไม่ใช่ช่าง (404) — ปิด pointer
+        elPeerLink.classList.add('chat-header__peer--no-link');
+        elPeerLink.removeAttribute('aria-label');
+      });
+
+    elPeerLink.addEventListener('click', (e) => {
+      // ถ้ายัง resolve ไม่เสร็จ (href ยัง #) — block
+      if (elPeerLink.getAttribute('href') === '#') e.preventDefault();
+    });
   }
 
   async function loadInitial() {
@@ -254,17 +263,8 @@
       transports: ['websocket', 'polling'],
     });
 
-    socket.on('connect', () => {
-      elPeerStatus.textContent = '';
-    });
-
     socket.on('connect_error', (err) => {
       console.warn('[socket] connect_error:', err.message);
-      elPeerStatus.textContent = 'เชื่อมต่อสดไม่ได้';
-    });
-
-    socket.on('disconnect', () => {
-      elPeerStatus.textContent = 'ออฟไลน์';
     });
 
     socket.on('chat:message', (m) => {
@@ -309,18 +309,6 @@
       if (changed) rerenderAll(allMessages);
     });
 
-    socket.on('chat:typing', (data) => {
-      if (Number(data.from_user_id) !== targetUserId) return;
-      const el = document.getElementById('chat-typing');
-      if (!el) return;
-      isPeerTyping = !!data.is_typing;
-      el.hidden = !isPeerTyping;
-    });
-  }
-
-  function emitTyping(isTyping) {
-    if (!socket || !socket.connected) return;
-    socket.emit('chat:typing', { to_user_id: targetUserId, is_typing: isTyping });
   }
 
   // ---------- Composer ----------
@@ -334,10 +322,6 @@
     // auto-grow
     elInput.style.height = 'auto';
     elInput.style.height = Math.min(elInput.scrollHeight, 120) + 'px';
-    // typing
-    emitTyping(true);
-    if (typingTimeout) clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => emitTyping(false), 1500);
   });
 
   elInput.addEventListener('keydown', (e) => {
@@ -354,8 +338,6 @@
     if (!text) return;
     elInput.value = '';
     elInput.style.height = 'auto';
-    emitTyping(false);
-    if (typingTimeout) clearTimeout(typingTimeout);
     sendMessage(text);
   });
 
