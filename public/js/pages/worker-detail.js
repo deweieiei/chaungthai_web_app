@@ -163,14 +163,16 @@
 
       <div class="stat-grid" style="margin-top: var(--space-md);">
         <div class="stat-box">
-          <div class="stat-box__icon">🎫</div>
-          <div class="stat-box__value">${w.worker_job_tickets}</div>
-          <div class="stat-box__label">บัตรคงเหลือ</div>
-        </div>
-        <div class="stat-box">
           <div class="stat-box__icon">✓</div>
           <div class="stat-box__value">${w.worker_total_jobs}</div>
           <div class="stat-box__label">รับงานทั้งหมด</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box__icon" style="opacity: ${u.user_identity_verified_at ? '1' : '0.4'};">🪪</div>
+          <div class="stat-box__value" style="font-size: 1.1rem; color: ${u.user_identity_verified_at ? 'var(--success)' : 'var(--text-muted)'};">
+            ${u.user_identity_verified_at ? '✓ ยืนยันแล้ว' : 'ยังไม่ยืนยัน'}
+          </div>
+          <div class="stat-box__label">บัตรประชาชน</div>
         </div>
       </div>
 
