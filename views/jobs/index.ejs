@@ -1,0 +1,20 @@
+<%- include('../partials/head') %>
+<div class="app-shell app-shell--with-nav">
+  <div class="page-content">
+    <div style="margin-bottom: var(--space-md);">
+      <h2 style="margin-bottom: 4px;">งาน</h2>
+      <p class="text-small text-muted" style="margin: 0;">งานทั้งหมดของคุณ</p>
+    </div>
+
+    <div class="tab-segment" role="tablist" id="job-tabs">
+      <button class="tab-segment__btn tab-segment__btn--active" data-tab="worker" role="tab">งานที่ฉันรับ</button>
+      <button class="tab-segment__btn" data-tab="employer" role="tab">งานที่ฉันจ้าง</button>
+    </div>
+
+    <div id="job-list" style="margin-top: var(--space-md);">
+      <div class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>
+    </div>
+  </div>
+  <%- include('../partials/bottom-nav', { activeTab: 'jobs' }) %>
+</div>
+<%- include('../partials/foot', { pageScript: 'jobs' }) %>

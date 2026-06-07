@@ -10,6 +10,7 @@
   const elInput = document.getElementById('chat-input');
   const elSend = document.getElementById('chat-send');
   const elComposer = document.getElementById('chat-composer');
+  const elHireBtn = document.getElementById('chat-hire-btn');
 
   const targetUserId = Number(elBody.dataset.targetUserId);
   const me = Auth.getUser();
@@ -82,7 +83,46 @@
     document.getElementById('chat-load-more-btn').addEventListener('click', loadOlder);
   }
 
+  function systemBubbleHtml(m) {
+    // payload ใน msg_content เป็น JSON
+    let p = null;
+    try { p = JSON.parse(m.msg_content); } catch {}
+    if (!p || !p.type) {
+      return `<div class="chat-system">${UI.escapeHtml(m.msg_content || '')}</div>`;
+    }
+    const time = timeOnly(m.msg_created_at);
+    if (p.type === 'job_created') {
+      const priceText = JobHelpers
+        ? JobHelpers.formatPrice(p.price) + ' บาท'
+        : (p.price + ' บาท');
+      const dates = `${JobHelpers ? JobHelpers.formatDate(p.start_date) : p.start_date} → ${JobHelpers ? JobHelpers.formatDate(p.deadline) : p.deadline}`;
+      return `
+        <a class="chat-system-card" href="/jobs/${p.job_id}">
+          <div class="chat-system-card__head">
+            <span class="chat-system-card__icon">💼</span>
+            <span class="chat-system-card__title">${UI.escapeHtml((p.employer_name || 'ผู้ว่าจ้าง'))} จ้างงาน</span>
+          </div>
+          <div class="chat-system-card__detail">${UI.escapeHtml(p.detail || '')}</div>
+          <div class="chat-system-card__meta">
+            <span class="text-bold">${priceText}</span> · <span class="text-muted">${dates}</span>
+          </div>
+          <div class="chat-system-card__cta">ดูรายละเอียด →</div>
+          <div class="chat-system-card__time">${UI.escapeHtml(time)}</div>
+        </a>`;
+    }
+    if (p.type === 'job_status_changed') {
+      return `
+        <a class="chat-system-line" href="/jobs/${p.job_id}">
+          <span class="chat-system-line__dot"></span>
+          <span>💼 ${UI.escapeHtml(p.label || 'อัปเดตสถานะงาน')}</span>
+          <span class="chat-system-line__time">${UI.escapeHtml(time)}</span>
+        </a>`;
+    }
+    return `<div class="chat-system">${UI.escapeHtml(p.label || m.msg_content || '')}</div>`;
+  }
+
   function bubbleHtml(m, opts) {
+    if (m.msg_type === 'system') return systemBubbleHtml(m);
     const isMine = m.msg_sender_id === meId;
     const cls = 'chat-bubble' + (isMine ? ' chat-bubble--mine' : ' chat-bubble--theirs');
     const time = timeOnly(m.msg_created_at);
@@ -167,12 +207,17 @@
     );
 
     // resolve worker_id ของ peer (ไม่บล็อก) → กดดูโปรไฟล์ช่างได้
-    // ถ้า peer ไม่ใช่ช่าง — กันไม่ให้ click พาไปหน้าไหน
+    // ถ้า peer ไม่ใช่ช่าง — กันไม่ให้ click พาไปหน้าไหน + ซ่อนปุ่มจ้างงาน
     elPeerLink.href = '#';
     Api.get('/workers/by-user/' + peer.user_id)
       .then((r) => {
         if (r && r.worker_id) {
           elPeerLink.href = '/worker/' + r.worker_id;
+          // peer เป็นช่าง → เปิดปุ่มจ้างงาน
+          if (elHireBtn) {
+            elHireBtn.hidden = false;
+            elHireBtn.disabled = false;
+          }
         }
       })
       .catch(() => {
@@ -340,6 +385,19 @@
     elInput.style.height = 'auto';
     sendMessage(text);
   });
+
+  // ปุ่มจ้างงานในแชต
+  if (elHireBtn) {
+    elHireBtn.addEventListener('click', () => {
+      if (!peer || !convId) return;
+      const fullName = ((peer.user_name || '') + ' ' + (peer.user_lastname || '')).trim() || 'ช่าง';
+      JobHelpers.openHireModal({
+        workerUserId: peer.user_id,
+        workerName: fullName,
+        convId: convId,
+      });
+    });
+  }
 
   // ---------- Bootstrap ----------
   (async () => {

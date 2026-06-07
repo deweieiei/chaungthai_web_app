@@ -63,8 +63,19 @@
          </a>`
       : '';
 
-    const phoneSection = (phoneRow || chatRow)
-      ? `<div class="card-list">${phoneRow}${chatRow}</div>`
+    const hireRow = !isSelf
+      ? `<button type="button" class="card-list__item" id="hire-btn" style="background:transparent;border:0;width:100%;text-align:left;cursor:pointer;">
+           <span class="card-list__icon" style="color: var(--success); font-size: 22px;">💼</span>
+           <div class="card-list__main">
+             <div class="card-list__label">จ้างงาน</div>
+             <div class="card-list__value text-bold">สร้างงานให้ช่างคนนี้</div>
+           </div>
+           <span class="card-list__trail">›</span>
+         </button>`
+      : '';
+
+    const phoneSection = (phoneRow || chatRow || hireRow)
+      ? `<div class="card-list">${phoneRow}${chatRow}${hireRow}</div>`
       : '';
 
     // สถานะตรวจประวัติอาชญากรรม (card)
@@ -203,10 +214,23 @@
     `;
   }
 
+  function bindHireButton(d) {
+    const btn = document.getElementById('hire-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const fullName = ((d.user.user_name || '') + ' ' + (d.user.user_lastname || '')).trim() || 'ช่าง';
+      JobHelpers.openHireModal({
+        workerUserId: d.user.user_id,
+        workerName: fullName,
+      });
+    });
+  }
+
   (async () => {
     try {
       const res = await Api.get('/workers/' + workerId);
       render(res);
+      bindHireButton(res);
     } catch (err) {
       const status = err.status;
       root.innerHTML = `<div class="empty-state">

@@ -29,9 +29,19 @@
     const meId = me && me.user_id;
     const isMine = item.last_msg_sender_id === meId;
     let content = item.last_msg_content || '';
-    if (item.last_msg_type === 'image') content = '📷 รูปภาพ';
+    if (item.last_msg_type === 'image') {
+      content = '📷 รูปภาพ';
+    } else if (item.last_msg_type === 'system') {
+      // payload JSON — ใช้ label/title
+      try {
+        const p = JSON.parse(content);
+        if (p.type === 'job_created') content = '💼 จ้างงาน: ' + (p.detail || '');
+        else if (p.type === 'job_status_changed') content = '💼 ' + (p.label || 'อัปเดตงาน');
+        else content = p.label || content;
+      } catch {}
+    }
     if (content.length > 60) content = content.slice(0, 60) + '...';
-    return (isMine ? 'คุณ: ' : '') + content;
+    return (isMine && item.last_msg_type !== 'system' ? 'คุณ: ' : '') + content;
   }
 
   function renderItem(c) {

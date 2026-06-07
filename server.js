@@ -197,6 +197,18 @@ app.get('/chat/:user_id', (req, res) => {
     targetUserId: req.params.user_id,
   });
 });
+app.get('/jobs', (req, res) =>
+  page(req, res, 'jobs/index', { title: 'งาน', activeTab: 'jobs' })
+);
+app.get('/jobs/:id', (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) {
+    return page(req, res, '404', { title: 'ไม่พบหน้า' });
+  }
+  page(req, res, 'jobs/detail', {
+    title: 'รายละเอียดงาน',
+    jobId: req.params.id,
+  });
+});
 
 // ============================================================
 //  Health
