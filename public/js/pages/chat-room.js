@@ -91,16 +91,27 @@
       return `<div class="chat-system">${UI.escapeHtml(m.msg_content || '')}</div>`;
     }
     const time = timeOnly(m.msg_created_at);
+
+    // ใครเป็น actor (คนทำ action) — msg_sender_id หรือ payload.actor_user_id
+    const actorId = p.actor_user_id || m.msg_sender_id;
+    // ถ้า action นี้ "เกี่ยวกับงานจ้าง" — ฉันคือ employer (จ้าง) ถ้า actor === me ใน job_created
+    // สำหรับ job_status_changed actor อาจเป็นช่าง — ดังนั้นใช้ "isMine" สื่อว่า action นี้เป็นของฉัน
+    const isMine = actorId === meId;
+    const roleCls = isMine ? ' chat-system-card--mine' : ' chat-system-card--theirs';
+    const roleLineCls = isMine ? ' chat-system-line--mine' : ' chat-system-line--theirs';
+
     if (p.type === 'job_created') {
       const priceText = JobHelpers
         ? JobHelpers.formatPrice(p.price) + ' บาท'
         : (p.price + ' บาท');
       const dates = `${JobHelpers ? JobHelpers.formatDate(p.start_date) : p.start_date} → ${JobHelpers ? JobHelpers.formatDate(p.deadline) : p.deadline}`;
+      // title: บอกชัดว่าใครจ้าง — "คุณจ้างงาน" หรือ "[ชื่อ] จ้างงาน"
+      const title = isMine ? 'คุณจ้างงาน' : `${UI.escapeHtml(p.employer_name || 'ผู้ว่าจ้าง')} จ้างงาน`;
       return `
-        <a class="chat-system-card" href="/jobs/${p.job_id}">
+        <a class="chat-system-card${roleCls}" href="/jobs/${p.job_id}">
           <div class="chat-system-card__head">
-            <span class="chat-system-card__icon">💼</span>
-            <span class="chat-system-card__title">${UI.escapeHtml((p.employer_name || 'ผู้ว่าจ้าง'))} จ้างงาน</span>
+            <span class="chat-system-card__icon">${isMine ? '💼' : '🔨'}</span>
+            <span class="chat-system-card__title">${title}</span>
           </div>
           <div class="chat-system-card__detail">${UI.escapeHtml(p.detail || '')}</div>
           <div class="chat-system-card__meta">
@@ -112,7 +123,7 @@
     }
     if (p.type === 'job_status_changed') {
       return `
-        <a class="chat-system-line" href="/jobs/${p.job_id}">
+        <a class="chat-system-line${roleLineCls}" href="/jobs/${p.job_id}">
           <span class="chat-system-line__dot"></span>
           <span>💼 ${UI.escapeHtml(p.label || 'อัปเดตสถานะงาน')}</span>
           <span class="chat-system-line__time">${UI.escapeHtml(time)}</span>

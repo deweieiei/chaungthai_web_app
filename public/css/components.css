@@ -2247,6 +2247,22 @@
   display: inline-block;
 }
 
+/* status update — แยกสีตาม actor */
+.chat-system-line--mine {
+  border-color: var(--primary-tint);
+  color: var(--primary);
+}
+.chat-system-line--mine .chat-system-line__dot {
+  background: var(--primary);
+}
+.chat-system-line--theirs {
+  border-color: rgba(37, 99, 235, 0.25);
+  color: var(--info);
+}
+.chat-system-line--theirs .chat-system-line__dot {
+  background: var(--info);
+}
+
 .chat-system-line__time {
   color: var(--text-faint);
   font-size: 0.7rem;
@@ -2256,8 +2272,8 @@
   align-self: stretch;
   display: block;
   background: var(--surface);
-  border: 1px solid var(--primary-tint);
-  border-left: 3px solid var(--primary);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--text-muted);
   border-radius: var(--radius-md);
   padding: var(--space-sm) var(--space-md);
   margin: 8px 0;
@@ -2265,6 +2281,34 @@
   color: var(--text);
   box-shadow: var(--shadow-xs);
   transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* ฉันคือ actor (ฉันจ้างเขา) — สี primary เหมือนการ์ดงาน 'ฉันจ้าง' */
+.chat-system-card--mine {
+  align-self: flex-end;
+  max-width: 92%;
+  border-color: var(--primary-tint);
+  border-left-color: var(--primary);
+  background: linear-gradient(to left, var(--primary-soft) 0%, transparent 40%);
+}
+
+.chat-system-card--mine .chat-system-card__title,
+.chat-system-card--mine .chat-system-card__cta {
+  color: var(--primary);
+}
+
+/* peer คือ actor (เขาจ้างฉัน) — สี info */
+.chat-system-card--theirs {
+  align-self: flex-start;
+  max-width: 92%;
+  border-color: rgba(37, 99, 235, 0.2);
+  border-left-color: var(--info);
+  background: linear-gradient(to right, var(--info-soft) 0%, transparent 40%);
+}
+
+.chat-system-card--theirs .chat-system-card__title,
+.chat-system-card--theirs .chat-system-card__cta {
+  color: var(--info);
 }
 
 .chat-system-card:active {
