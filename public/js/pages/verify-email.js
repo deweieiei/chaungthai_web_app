@@ -1,4 +1,4 @@
-// /verify-email
+// /verify-email — ใช้ OTP 6 หลัก (เลียนแบบ verify-phone)
 (function () {
   'use strict';
   if (!Auth.guard()) return;
@@ -8,74 +8,125 @@
   const elDisplay = document.getElementById('email-display');
   const elContent = document.getElementById('content-area');
 
+  let countdown = 0;
+  let countdownTimer = null;
+
   function render() {
     const u = Auth.getUser() || {};
-    elDisplay.textContent = u.user_email || '-';
+    const email = u.user_email || '';
     const verified = !!u.user_email_verified_at;
+    elDisplay.textContent = email || '-';
     elIcon.textContent = verified ? '✅' : '✉';
     elTitle.textContent = verified ? 'ยืนยันอีเมลแล้ว' : 'อีเมลของคุณ';
 
     if (verified) {
       elContent.innerHTML = `<a href="/profile" class="btn btn--primary btn--block">กลับ</a>`;
-    } else {
+      return;
+    }
+    if (!email) {
       elContent.innerHTML = `
-        <div id="msg-area"></div>
-        <button class="btn btn--primary btn--block" id="request-btn">ส่งลิงก์ยืนยันไปที่อีเมล</button>
-        <div id="dev-area" class="hidden" style="margin-top: var(--space-md);"></div>
-      `;
-      document.getElementById('request-btn').addEventListener('click', requestVerify);
+        <p class="text-muted text-center">ไม่มีอีเมลในระบบ</p>`;
+      return;
+    }
+
+    elContent.innerHTML = `
+      <button class="btn btn--soft btn--block" id="request-btn">ส่งรหัส OTP</button>
+      <div id="dev-area" class="hidden" style="margin-top: var(--space-md);"></div>
+      <div class="field" style="margin-top: var(--space-md);">
+        <label class="field__label" for="otp">รหัส OTP (6 หลัก)</label>
+        <input class="input otp-input" type="text" id="otp" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+        <div class="field__error" id="otp-error"></div>
+      </div>
+      <button class="btn btn--primary btn--block" id="confirm-btn">ยืนยัน OTP</button>
+    `;
+
+    document.getElementById('request-btn').addEventListener('click', requestOtp);
+    document.getElementById('confirm-btn').addEventListener('click', confirmOtp);
+    const otpInput = document.getElementById('otp');
+    otpInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    });
+  }
+
+  function setRequestBtnState() {
+    const btn = document.getElementById('request-btn');
+    if (!btn) return;
+    if (countdown > 0) {
+      btn.disabled = true;
+      btn.textContent = `ขอใหม่ใน ${countdown} วินาที`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'ส่งรหัส OTP';
     }
   }
 
-  async function requestVerify(e) {
+  function startCountdown(seconds) {
+    countdown = seconds;
+    setRequestBtnState();
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+      countdown--;
+      setRequestBtnState();
+      if (countdown <= 0) clearInterval(countdownTimer);
+    }, 1000);
+  }
+
+  async function requestOtp(e) {
     const btn = e.currentTarget;
-    document.getElementById('msg-area').innerHTML = '';
     UI.setBtnLoading(btn, true);
     try {
       const res = await Api.post('/auth/verify-email/request');
-      document.getElementById('msg-area').innerHTML = `
-        <div class="alert alert--info">
-          <span class="alert__icon">ℹ</span>
-          <span>${UI.escapeHtml(res.message || 'ส่งลิงก์ยืนยันไปยังอีเมลแล้ว')}</span>
-        </div>`;
-
-      if (res.verify_token) {
+      UI.toast('ส่งรหัส OTP ไปยังอีเมลแล้ว');
+      startCountdown(60);
+      if (res.otp_code) {
         const dev = document.getElementById('dev-area');
         dev.classList.remove('hidden');
         dev.innerHTML = `
           <div class="alert alert--dev">
             <span class="alert__icon">🛠</span>
             <div>
-              <div><strong>Dev mode</strong> — production จะส่งทางอีเมลจริง</div>
-              <button class="btn btn--soft btn--sm" id="auto-confirm-btn" style="margin-top: 8px;">Auto-confirm (mock)</button>
+              <div><strong>Dev mode — OTP:</strong> ${UI.escapeHtml(res.otp_code)}</div>
+              <button class="btn btn--soft btn--sm" id="auto-fill-btn" style="margin-top: 8px;">Auto-fill OTP</button>
             </div>
           </div>`;
-        document.getElementById('auto-confirm-btn').addEventListener('click', () => confirmVerify(res.verify_token));
+        document.getElementById('auto-fill-btn').addEventListener('click', () => {
+          document.getElementById('otp').value = res.otp_code;
+        });
       }
     } catch (err) {
+      UI.setBtnLoading(btn, false);
       if (err.status === 409) {
+        // ยืนยันแล้ว → refresh
         await refreshUser();
         render();
-      } else {
-        document.getElementById('msg-area').innerHTML = `
-          <div class="alert alert--danger"><span class="alert__icon">⚠</span><span>${UI.escapeHtml(err.message)}</span></div>`;
+        return;
       }
-    } finally {
-      UI.setBtnLoading(btn, false);
+      UI.toast(err.message || 'ขอ OTP ไม่สำเร็จ', 'danger');
+      return;
     }
+    UI.setBtnLoading(btn, false);
+    setRequestBtnState();
   }
 
-  async function confirmVerify(token) {
-    UI.showLoading();
+  async function confirmOtp(e) {
+    const btn = e.currentTarget;
+    const otp = document.getElementById('otp').value.trim();
+    UI.setFieldError('otp', null);
+    const err = UI.Validators.otp(otp);
+    if (err) {
+      UI.setFieldError('otp', err);
+      return;
+    }
+    UI.setBtnLoading(btn, true);
     try {
-      await Api.post('/auth/verify-email/confirm', { token });
+      await Api.post('/auth/verify-email/confirm', { otp_code: otp });
       await refreshUser();
       UI.toast('ยืนยันอีเมลสำเร็จ', 'success');
       setTimeout(() => location.assign('/profile'), 700);
-    } catch (err) {
-      UI.toast(err.message || 'ยืนยันไม่สำเร็จ', 'danger');
+    } catch (e2) {
+      UI.setFieldError('otp', e2.message || 'OTP ไม่ถูกต้อง');
     } finally {
-      UI.hideLoading();
+      UI.setBtnLoading(btn, false);
     }
   }
 
