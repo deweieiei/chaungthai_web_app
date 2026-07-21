@@ -56,7 +56,9 @@
       countEl.textContent = lastWorkers.length
         ? 'ช่างว่าง ' + lastWorkers.length + ' คน'
         : 'ไม่พบช่างในพื้นที่นี้';
-      emptyEl.hidden = lastWorkers.length > 0 || !mapEl.offsetParent;
+      // โชว์กล่อง "ไม่พบช่าง" เฉพาะตอนดูแผนที่และไม่เจอใครจริง ๆ
+      // (มุมมองลิสต์มีข้อความว่างของตัวเองอยู่แล้ว)
+      emptyEl.hidden = lastWorkers.length > 0 || !listView.hidden;
     } catch (err) {
       if (seq !== loadSeq) return;
       countEl.textContent = 'โหลดไม่สำเร็จ';
@@ -180,6 +182,10 @@
 
     const center = await initialCenter();
     map = CtMap.create('#map', { center: center, zoom: 13 });
+
+    // แผนที่ถูกสร้างในกล่อง flex — ถ้า layout ยังไม่นิ่ง Leaflet จะจำขนาดผิด
+    // แล้ว getBounds() คืนกรอบเล็กจิ๋วจนหาช่างไม่เจอ · สั่งวัดขนาดใหม่ก่อนโหลดรอบแรก
+    map.invalidateSize();
 
     CtMap.onViewChange(map, loadWorkers);
     loadWorkers();

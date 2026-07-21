@@ -195,7 +195,6 @@
   position: relative;
 }
 .mapwrap__map { position: absolute; inset: 0; }
-.mapwrap__map[hidden] { display: none; }
 
 .mapwrap__list {
   position: absolute;

@@ -115,6 +115,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ต้องมาก่อนทุก component
+   เบราว์เซอร์ซ่อน [hidden] ด้วย display:none จาก UA stylesheet
+   แต่ CSS ที่เราเขียนเอง (เช่น .map-empty { display:flex }) มีลำดับสูงกว่าเสมอ
+   → element ที่ตั้ง display ไว้จะ "ซ่อนไม่ลง" แม้ใส่ attribute hidden
+   เคยทำให้กล่อง "ยังไม่มีช่างว่างในพื้นที่นี้" ค้างทับแผนที่ตลอดเวลา */
+[hidden] {
+  display: none !important;
+}
+
 img, svg {
   max-width: 100%;
   display: block;
