@@ -147,8 +147,32 @@
             (d.portfolio_images || []).length > 0
               ? 'มี ' + d.portfolio_images.length + ' รูป' : 'ยังไม่มีรูป') +
         '</div>'
+      ) +
+
+      // ---- ปุ่มจัดการ (ย้ายมาจากแท็บช่างในโปรไฟล์) ----
+      card(
+        '<div class="card__title">⚙️ จัดการโปรไฟล์ช่าง</div>' +
+        '<div class="card-list">' +
+          actionRow('🛠', 'แก้ไขความสามารถ', '/worker/edit-skills') +
+          actionRow('🕘', 'เวลาที่รับงานได้', '/worker/schedule') +
+          actionRow('🪪', 'อัปโหลดประวัติอาชญากรรม', '/worker/crime-document') +
+          actionRow('🖼', 'อัปโหลดรีซูเม่ / ผลงาน', '/worker/portfolio') +
+          actionRow('📍', 'ย้ายจุดรับงาน / รัศมี', '/profile/edit') +
+          actionRow('👁', 'ดูโปรไฟล์แบบที่ลูกค้าเห็น', '/worker/' + workerId) +
+        '</div>'
       );
   })();
+
+  function actionRow(icon, label, href) {
+    return (
+      '<a href="' + href + '" class="card-list__item">' +
+        '<span class="card-list__icon">' + icon + '</span>' +
+        '<div class="card-list__main"><div class="card-list__value">' +
+          UI.escapeHtml(label) + '</div></div>' +
+        '<span class="card-list__trail">›</span>' +
+      '</a>'
+    );
+  }
 
   function crimeHint(w) {
     if (w.worker_crime_check_status === 'approved') return 'ผ่านการตรวจแล้ว';

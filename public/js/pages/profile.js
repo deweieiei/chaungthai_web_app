@@ -7,9 +7,6 @@
 
   // ---- state ----
   let currentUser = null;
-  let currentWorker = null;      // detail.worker จาก /api/workers/:id
-  let currentWorkerLoaded = false;
-  let activeTab = 'account';     // 'account' | 'worker'
 
   // ---- helpers ----
   //  บัญชีช่างกับผู้ว่าจ้างแยกกันสมบูรณ์ — โชว์ให้ชัดว่าตอนนี้อยู่ฝั่งไหน
@@ -63,24 +60,6 @@
       </div>`;
   }
 
-  // ---- tab bar ----
-  //  แท็บ "ช่าง" มีเฉพาะบัญชีฝั่งช่างเท่านั้น
-  //  บัญชีผู้ว่าจ้างไม่มีอะไรเกี่ยวกับช่างเลย — มีแท็บเดียวก็ไม่ต้องโชว์แถบแท็บ
-  function renderTabBar() {
-    if (accountTypeOf(currentUser) !== 'worker') return '';
-    return `
-      <div class="tab-bar" role="tablist" style="margin-top: var(--space-lg);">
-        <button type="button" class="tab-bar__item ${activeTab === 'account' ? 'tab-bar__item--active' : ''}" data-tab="account" role="tab" aria-selected="${activeTab === 'account'}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          บัญชี
-        </button>
-        <button type="button" class="tab-bar__item ${activeTab === 'worker' ? 'tab-bar__item--active' : ''}" data-tab="worker" role="tab" aria-selected="${activeTab === 'worker'}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg>
-          ช่าง
-        </button>
-      </div>`;
-  }
-
   // ---- view: account tab ----
   function renderAccountTab(u) {
     const emailTrail = u.user_email_verified_at
@@ -118,265 +97,21 @@
       </div>`;
   }
 
-  // ---- view: worker tab (not a worker yet — show terms) ----
-  function renderWorkerTermsTab() {
-    return `
-      <div class="alert alert--info">
-        <span class="alert__icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        </span>
-        <span>คุณยังไม่ได้สมัครเป็นช่าง อ่านเงื่อนไขด้านล่างและสมัครได้เลย</span>
-      </div>
-
-      <div class="card card--elevated">
-        <h3 class="card__title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-          เงื่อนไขและข้อตกลงการเป็นช่าง
-        </h3>
-
-        <div class="terms-section" style="margin-top: var(--space-md);">
-          <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">1. การใช้งานบัตรรับงาน</h4>
-          <p class="text-small text-muted" style="margin: 0 0 var(--space-sm);">
-            ช่างทุกคนจะได้รับ <strong style="color: var(--text);">บัตรรับงาน 25 ใบต่อเดือน</strong>
-            (รีเซ็ตทุกวันที่ 1 ของเดือน) ใช้ได้ 1 ใบต่อการรับ 1 งาน บัตรที่ใช้แล้วจะไม่คืนแม้ยกเลิกงาน
-            หากต้องการบัตรเพิ่มต้องซื้อแพ็กเสริม
-          </p>
-        </div>
-
-        <div class="terms-section" style="margin-top: var(--space-md);">
-          <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">2. การรับผิดชอบในงาน</h4>
-          <p class="text-small text-muted" style="margin: 0 0 var(--space-sm);">
-            ช่างต้องรับผิดชอบในงานที่รับเองทั้งหมด รวมถึงคุณภาพ ความปลอดภัย และความเสียหายที่อาจเกิดขึ้น
-            หากเกิดข้อพิพาท ChaungThai จะเป็นผู้ตัดสินขั้นต้น แต่ไม่รับผิดชอบต่อความเสียหายโดยตรง
-            ทั้งนี้ช่างควรมีประกันความเสียหายของตัวเอง
-          </p>
-        </div>
-
-        <div class="terms-section" style="margin-top: var(--space-md);">
-          <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">3. ข้อมูลและตัวตน</h4>
-          <p class="text-small text-muted" style="margin: 0 0 var(--space-sm);">
-            ช่างต้องให้ข้อมูลที่เป็นจริง ทั้งชื่อ-นามสกุล เบอร์ติดต่อ ที่อยู่ บัตรประชาชน
-            และทักษะที่ตนเองมี ระบบจะตรวจสอบประวัติอาชญากรรมและยืนยันตัวตนก่อนเปิดให้รับงาน
-            ข้อมูลเท็จจะถูกระงับบัญชีทันที
-          </p>
-        </div>
-
-        <div class="terms-section" style="margin-top: var(--space-md);">
-          <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">4. ค่าบริการและการชำระเงิน</h4>
-          <p class="text-small text-muted" style="margin: 0 0 var(--space-sm);">
-            ช่างเป็นผู้กำหนดค่าบริการกับลูกค้าโดยตรง ChaungThai ไม่เก็บค่าคอมมิชชั่นจากงาน
-            แต่หักค่าธรรมเนียม "บัตรรับงาน" ตามแพ็กเสริมที่ซื้อ และจะมีค่าบริการ premium ในอนาคต
-          </p>
-        </div>
-
-        <div class="terms-section" style="margin-top: var(--space-md);">
-          <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">5. การยกเลิกบัญชีช่าง</h4>
-          <p class="text-small text-muted" style="margin: 0;">
-            ช่างสามารถปิดสถานะรับงานได้ตลอดเวลา แต่หากต้องการลบบัญชีช่างถาวร
-            ต้องไม่มีงานค้างและไม่มีข้อพิพาทกับลูกค้า
-          </p>
-        </div>
-
-        <p class="text-tiny text-faint" style="margin-top: var(--space-md); font-style: italic;">
-          * เงื่อนไขนี้เป็นตัวอย่างเบื้องต้น จะปรับให้สมบูรณ์ก่อนเปิดใช้งานจริง
-        </p>
-      </div>
-
-      <div class="card">
-        <label class="check">
-          <input type="checkbox" id="agree-worker-terms">
-          <span class="check__box" aria-hidden="true"></span>
-          <span class="check__label">
-            ฉันได้อ่านและ<strong>ยอมรับเงื่อนไขและข้อตกลง</strong>การเป็นช่างทั้งหมด
-          </span>
-        </label>
-        <button type="button" class="btn btn--primary btn--block btn--lg" id="continue-worker-btn" disabled style="margin-top: var(--space-md);">
-          ดำเนินการสมัครเป็นช่าง
-        </button>
-      </div>`;
-  }
-
-  // ---- crime check status label ----
-  function crimeStatusLabel(w) {
-    if (!w || !w.worker_crime_checked_at) return '⚠ ยังไม่ตรวจประวัติ';
-    const st = w.worker_crime_check_status;
-    if (st === 'approved') return '✓ ตรวจประวัติแล้ว';
-    if (st === 'rejected') return '✗ ไม่ผ่านการตรวจ';
-    return '⏳ รอเจ้าหน้าที่ตรวจ';
-  }
-
-  // ---- view: worker tab (already a worker — dashboard) ----
-  function renderWorkerDashboardTab(u, w) {
-    // บัตรรับงาน — ใช้ข้อมูลจริงจาก DB
-    const totalTickets = 25;
-    const ticketsRemain = w ? Number(w.worker_job_tickets ?? 0) : 0;
-    const ticketsUsed = Math.max(0, totalTickets - ticketsRemain);
-    const ticketsPct = Math.round((ticketsRemain / totalTickets) * 100);
-
-    const totalJobs = w ? Number(w.worker_total_jobs ?? 0) : 0;
-    // จำนวนงานที่รับ % — สมมุติว่าเทียบกับ 100 งาน
-    const jobsPct = Math.min(100, Math.round((totalJobs / 100) * 100));
-
-    // % เอกสารยื่นสมัคร — คำนวณจากข้อมูลจริงที่ user กรอก
-    let docsPct = 0;
-    if (u.user_phone) docsPct += 20;
-    if (u.user_phone_verified_at) docsPct += 10;
-    if (u.user_email_verified_at) docsPct += 10;
-    if (u.user_address) docsPct += 15;
-    if (u.user_birthday) docsPct += 5;
-    if (u.user_image) docsPct += 10;
-    if (w && w.worker_resume) docsPct += 15;
-    if (w && w.worker_crime_checked_at) docsPct += 15;
-    docsPct = Math.min(100, docsPct);
-
-    // คะแนนความประพฤติ — ใส่ 100/100 ก่อน (รอ rating system)
-    const conductScore = 100;
-    const conductMax = 100;
-
-    // เลขบัตรช่าง — สร้างจาก worker_id แบบ CT-0000-0001
-    const workerNo = w
-      ? `CT-${String(w.worker_id || 0).padStart(8, '0').match(/.{1,4}/g).join('-')}`
-      : 'CT-0000-0000';
-    const memberSince = w && w.worker_created_at
-      ? UI.formatThaiDate(w.worker_created_at)
-      : '-';
-
-    return `
-      <!-- บัตรประชาชนช่าง -->
-      <div class="worker-id-card">
-        <div class="worker-id-card__head">
-          <div class="worker-id-card__brand">ChaungThai · Worker ID</div>
-          <div class="worker-id-card__logo">
-            <img src="/static/images/logo.png" alt="">
-          </div>
-        </div>
-        <div class="worker-id-card__body">
-          <div class="worker-id-card__no-label">เลขประจำตัวช่าง</div>
-          <div class="worker-id-card__no">${workerNo}</div>
-          <div style="margin-top: 14px;">
-            <div class="worker-id-card__no-label">ชื่อ-นามสกุล</div>
-            <h3 class="worker-id-card__name">${UI.escapeHtml((u.user_name || '') + ' ' + (u.user_lastname || '')).trim() || 'ช่าง'}</h3>
-          </div>
-        </div>
-        <div class="worker-id-card__foot">
-          <span>สมาชิกตั้งแต่ ${memberSince}</span>
-          <span>${crimeStatusLabel(w)}</span>
-        </div>
-      </div>
-
-      <!-- บัตรรับงานคงเหลือ -->
-      <h3 class="section-title">บัตรรับงาน</h3>
-      <div class="stat-card">
-        <div class="stat-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 0 0 6v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 0 0-6Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
-        </div>
-        <div class="stat-card__main">
-          <div>
-            <span class="stat-card__value">${ticketsRemain}</span><span class="stat-card__value-suffix">/ ${totalTickets} ใบ</span>
-          </div>
-          <div class="stat-card__label">บัตรคงเหลือเดือนนี้ · ใช้แล้ว ${ticketsUsed} ใบ</div>
-          <div class="stat-card__bar">
-            <div class="stat-card__bar-fill" style="width: ${ticketsPct}%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- จำนวนงานที่รับ -->
-      <h3 class="section-title">สถิติงาน</h3>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--success">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        </div>
-        <div class="stat-card__main">
-          <div>
-            <span class="stat-card__value">${totalJobs}</span><span class="stat-card__value-suffix">งาน · ${jobsPct}%</span>
-          </div>
-          <div class="stat-card__label">จำนวนงานที่รับทั้งหมด</div>
-          <div class="stat-card__bar">
-            <div class="stat-card__bar-fill stat-card__bar-fill--success" style="width: ${jobsPct}%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- % เอกสารสมัครช่าง -->
-      <h3 class="section-title">การยื่นเอกสารสมัครช่าง</h3>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--info">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-        </div>
-        <div class="stat-card__main">
-          <div>
-            <span class="stat-card__value">${docsPct}</span><span class="stat-card__value-suffix">%</span>
-          </div>
-          <div class="stat-card__label">${docsPct >= 100 ? 'ครบถ้วน' : docsPct >= 70 ? 'เกือบครบ' : 'ยังไม่ครบ'} · แก้ไขที่ "แก้ไขข้อมูลส่วนตัว"</div>
-          <div class="stat-card__bar">
-            <div class="stat-card__bar-fill ${docsPct >= 100 ? 'stat-card__bar-fill--success' : 'stat-card__bar-fill--warning'}" style="width: ${docsPct}%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- คะแนนความประพฤติ -->
-      <h3 class="section-title">คะแนนความประพฤติ</h3>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--warning">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </div>
-        <div class="stat-card__main">
-          <div>
-            <span class="stat-card__value">${conductScore}</span><span class="stat-card__value-suffix">/ ${conductMax}</span>
-          </div>
-          <div class="stat-card__label">${conductScore >= 90 ? 'ยอดเยี่ยม' : conductScore >= 75 ? 'ดี' : conductScore >= 60 ? 'พอใช้' : 'ควรปรับปรุง'} · จากการประเมินของลูกค้า</div>
-          <div class="stat-card__bar">
-            <div class="stat-card__bar-fill stat-card__bar-fill--success" style="width: ${conductScore}%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- actions -->
-      <h3 class="section-title">จัดการช่าง</h3>
-      <div class="card-list">
-        ${actionRow({ icon: '🛠', label: 'แก้ไขสกิลของฉัน', href: '/worker/edit-skills' })}
-        ${actionRow({ icon: '🕘', label: 'เวลาที่รับงานได้', href: '/worker/schedule' })}
-        ${actionRow({ icon: '🪪', label: 'อัพโหลดประวัติอาชญากรรม', href: '/worker/crime-document' })}
-        ${actionRow({ icon: '🖼', label: 'อัพโหลดรีซูเม่ / ผลงาน', href: '/worker/portfolio' })}
-        ${actionRow({ icon: '👁', label: 'ดูโปรไฟล์สาธารณะ', href: w ? '/worker/' + w.worker_id : '#' })}
-      </div>
-
-      <p class="text-tiny text-faint text-center" style="margin-top: var(--space-md);">
-        * ตัวเลขบางส่วนเป็นข้อมูลตัวอย่าง รอเชื่อมต่อระบบประเมินจริง
-      </p>`;
-  }
-
   // ---- main render ----
+  //  โปรไฟล์เหลือแค่ "ข้อมูลบัญชี" อย่างเดียวทั้ง 2 ฝั่ง
+  //  ของฝั่งช่าง (บัตรช่าง สถิติ ปุ่มจัดการ) ย้ายไปหน้าหลัก /worker/home หมดแล้ว
   function render() {
     const u = currentUser;
     if (!u) return;
-    const isWorkerAccount = accountTypeOf(u) === 'worker';
-    const isWorker = isWorkerAccount && u.user_role === 'worker';
 
-    // บัญชีผู้ว่าจ้างไม่มีส่วนของช่างเลย — บังคับกลับแท็บบัญชีเสมอ
-    if (!isWorkerAccount) activeTab = 'account';
-
-    let body = '';
-    if (activeTab === 'account') {
-      body = renderAccountTab(u);
-    } else {
-      // แท็บช่าง (มีเฉพาะบัญชีฝั่งช่าง)
-      if (!isWorker) {
-        // บัญชีช่างแล้ว แต่ยังไม่ได้ตั้งโปรไฟล์ช่าง (เลือกสกิล + ปักหมุด)
-        body = renderWorkerTermsTab();
-      } else if (!currentWorkerLoaded) {
-        body = `<div class="loading-block"><div class="spinner"></div><div>กำลังโหลดข้อมูลช่าง...</div></div>`;
-      } else {
-        body = renderWorkerDashboardTab(u, currentWorker);
-      }
-    }
-
-    root.innerHTML = renderHeader(u) + renderTabBar() + body;
+    root.innerHTML = renderHeader(u) + renderAccountTab(u);
 
     bindCommonEvents();
-    bindTabEvents();
-    bindTabSpecificEvents();
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', confirmLogout);
+    const closeBtn = document.getElementById('close-account-btn');
+    if (closeBtn) closeBtn.addEventListener('click', confirmClose);
   }
 
   function bindCommonEvents() {
@@ -385,42 +120,6 @@
     if (uploadBtn && uploadInp) {
       uploadBtn.addEventListener('click', () => uploadInp.click());
       uploadInp.addEventListener('change', uploadAvatar);
-    }
-  }
-
-  function bindTabEvents() {
-    document.querySelectorAll('.tab-bar__item').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const t = btn.dataset.tab;
-        if (t === activeTab) return;
-        activeTab = t;
-        render();
-        if (activeTab === 'worker' && accountTypeOf(currentUser) === 'worker'
-            && currentUser.user_role === 'worker' && !currentWorkerLoaded) {
-          loadWorkerDetail();
-        }
-      });
-    });
-  }
-
-  function bindTabSpecificEvents() {
-    if (activeTab === 'account') {
-      const logoutBtn = document.getElementById('logout-btn');
-      if (logoutBtn) logoutBtn.addEventListener('click', confirmLogout);
-      const closeBtn = document.getElementById('close-account-btn');
-      if (closeBtn) closeBtn.addEventListener('click', confirmClose);
-    } else if (activeTab === 'worker' && currentUser.user_role !== 'worker') {
-      // บัญชีช่างแล้ว แต่ยังไม่ตั้งโปรไฟล์ช่าง
-      const agree = document.getElementById('agree-worker-terms');
-      const cont = document.getElementById('continue-worker-btn');
-      if (agree && cont) {
-        agree.addEventListener('change', () => {
-          cont.disabled = !agree.checked;
-        });
-        cont.addEventListener('click', () => {
-          if (agree.checked) location.href = '/become-worker';
-        });
-      }
     }
   }
 
@@ -500,28 +199,6 @@
     });
   }
 
-  // ---- worker detail loader ----
-  async function loadWorkerDetail() {
-    try {
-      const wid = await resolveWorkerId(currentUser);
-      if (!wid) {
-        currentWorker = null;
-        currentWorkerLoaded = true;
-        if (activeTab === 'worker') render();
-        return;
-      }
-      const detail = await Api.get('/workers/' + wid);
-      currentWorker = { ...detail.worker, all_skills: detail.skills };
-      currentWorkerLoaded = true;
-      if (activeTab === 'worker') render();
-    } catch (err) {
-      console.warn('[profile] load worker detail', err);
-      currentWorker = null;
-      currentWorkerLoaded = true;
-      if (activeTab === 'worker') render();
-    }
-  }
-
   // ---- init ----
   (async () => {
     const cached = Auth.getUser();
@@ -534,10 +211,6 @@
       currentUser = res.user;
       Auth.setUser(res.user);
       render();
-      // preload worker detail ถ้าเป็นช่าง (จะใช้ตอนเปิด tab ช่าง)
-      if (res.user.user_role === 'worker') {
-        loadWorkerDetail();
-      }
     } catch (err) {
       if (!cached) {
         root.innerHTML = `<div class="empty-state">

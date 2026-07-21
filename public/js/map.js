@@ -101,6 +101,13 @@
     return (cat && CATEGORY_ICONS[cat]) || '🛠️';
   }
 
+  // รูปคนในหมุด — สื่อว่าหมุดคือ "คน" ไม่ใช่ "ร้าน" หรือ "ประเภทงาน"
+  const PERSON_SVG =
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+      '<circle cx="12" cy="8" r="4"/>' +
+      '<path d="M12 14c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/>' +
+    '</svg>';
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -155,7 +162,7 @@
       if (w.worker_lat == null || w.worker_lng == null) return;
       const icon = L.divIcon({
         className: '',
-        html: '<div class="ct-pin"><span>' + iconFor(w) + '</span></div>',
+        html: '<div class="ct-pin"><span>' + PERSON_SVG + '</span></div>',
         iconSize: [38, 38],
         iconAnchor: [19, 38],
         popupAnchor: [0, -36],

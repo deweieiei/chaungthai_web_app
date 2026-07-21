@@ -447,6 +447,16 @@ html[data-account="employer"] [data-only="worker"] {
   transform: rotate(45deg);
   font-size: 17px;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* รูปคนในหมุด — สีขาวตัดกับพื้นหมุดสีแดง */
+.ct-pin svg {
+  width: 19px;
+  height: 19px;
+  color: #fff;
+  display: block;
 }
 .ct-pin--me {
   width: 42px;
