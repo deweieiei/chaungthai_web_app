@@ -1,5 +1,5 @@
 <%- include('partials/head') %>
-<div class="app-shell app-shell--with-nav">
+<div class="app-shell">
   <%- include('partials/app-nav', { activeTab: 'search' }) %>
   <div class="page-content">
     <div style="margin-bottom: var(--space-md);">
@@ -70,7 +70,6 @@
 
     <div id="results-area"></div>
   </div>
-  <%- include('partials/bottom-nav', { activeTab: 'search' }) %>
 </div>
 <script src="/static/js/map.js?v=<%= assetV %>"></script>
 <%- include('partials/foot', { pageScript: 'search' }) %>

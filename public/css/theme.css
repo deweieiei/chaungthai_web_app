@@ -75,7 +75,6 @@
 
   /* ---- Layout ---- */
   --header-height: 56px;
-  --bottom-nav-height: 68px;
   --max-content-width: 480px;
   --max-content-width-wide: 1080px;
 
@@ -231,10 +230,6 @@ code {
   flex-direction: column;
 }
 
-.app-shell--with-nav {
-  padding-bottom: var(--bottom-nav-height);
-}
-
 .app-shell--with-header {
   padding-top: var(--header-height);
 }
@@ -271,14 +266,6 @@ code {
 @media (min-width: 1024px) {
   .app-shell {
     box-shadow: var(--shadow-xl);
-  }
-}
-
-/* Safe area bottom (iOS) */
-@supports (padding: max(0px)) {
-  .bottom-nav,
-  .app-shell--with-nav {
-    padding-bottom: max(var(--bottom-nav-height), env(safe-area-inset-bottom));
   }
 }
 

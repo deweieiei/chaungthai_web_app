@@ -4,79 +4,143 @@
 ============================================================ */
 
 /* ============================================================
-   แถบเมนูบน (desktop) — เว็บเต็มตัว ไม่ใช่แอปมือถือ
-   จอเล็กซ่อนไว้ ใช้ bottom-nav เหมือนเดิม
+   แถบเมนูบน — ใช้ทุกขนาดจอ (เดิมจอเล็กใช้เมนูล่าง ตอนนี้ยกขึ้นบนหมด)
+   จอแคบ: ยุบเมนูเข้าปุ่ม ☰ แล้วกางลงมาเป็นรายการ
 ============================================================ */
-.app-nav { display: none; }
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
 
-@media (min-width: 1024px) {
-  .app-nav {
-    display: block;
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
+.app-nav__bar {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.app-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.app-nav__brand img { width: 34px; height: 34px; }
+
+.app-nav__links {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-nav__link {
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  transition: 0.15s;
+}
+.app-nav__link:hover { background: var(--surface-muted); color: var(--text); }
+.app-nav__link.is-active { background: var(--primary-soft); color: var(--primary); }
+
+.app-nav__link--me {
+  border: 1px solid var(--border);
+  padding: 5px 14px 5px 6px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14.5px;
+  margin-left: 6px;
+}
+.app-nav__link--me:hover { border-color: var(--primary); }
+
+/* ปุ่ม ☰ — โผล่เฉพาะจอแคบ */
+.app-nav__burger {
+  display: none;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: none;
+}
+.app-nav__burger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: 0.2s;
+}
+.app-nav__burger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.app-nav__burger.is-open span:nth-child(2) { opacity: 0; }
+.app-nav__burger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* ---- จอแคบ: ยุบเมนูเข้า ☰ ---- */
+@media (max-width: 860px) {
+  .app-nav__burger { display: flex; }
+
+  .app-nav__links {
+    position: absolute;
+    top: 100%;
+    right: 12px;
+    left: 12px;
+    margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    display: none;
   }
-  .app-nav__bar {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0 24px;
-    height: 62px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .app-nav__brand {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    font-weight: 800;
-    font-size: 19px;
-    color: var(--primary);
-    text-decoration: none;
-    margin-right: 14px;
-  }
-  .app-nav__brand img { width: 34px; height: 34px; }
+  .app-nav__links.is-open { display: flex; }
 
   .app-nav__link {
-    padding: 8px 15px;
-    border-radius: 999px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    position: relative;
-    transition: 0.15s;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 15.5px;
   }
-  .app-nav__link:hover { background: var(--surface-muted); color: var(--text); }
-  .app-nav__link.is-active { background: var(--primary-soft); color: var(--primary); }
-
-  .app-nav__spacer { margin-left: auto; }
-
-  .app-nav__me {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 5px 14px 5px 6px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    text-decoration: none;
-    color: var(--text);
-    font-weight: 700;
-    font-size: 14.5px;
+  .app-nav__link--me {
+    margin-left: 0;
+    margin-top: 4px;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    padding-top: 12px;
   }
-  .app-nav__me:hover { border-color: var(--primary); color: var(--primary); }
+}
 
-  /* จอใหญ่: ซ่อนเมนูล่าง + ไม่ต้องเว้นที่ให้มัน */
-  .bottom-nav { display: none !important; }
-  .app-shell--with-nav { padding-bottom: 0 !important; }
-
-  /* เว็บเต็มความกว้าง — ไม่ใช่คอลัมน์มือถือกลางจอ */
+/* เว็บเต็มความกว้าง — ไม่ใช่คอลัมน์มือถือกลางจอ
+   ใช้จุดตัดเดียวกับตอนที่เมนูกางออกจากปุ่ม ☰ (861px)
+   เลย์เอาต์จะได้เปลี่ยนพร้อมกันทีเดียว ไม่ใช่คนละจังหวะ */
+@media (min-width: 861px) {
   .app-shell {
     max-width: 100%;
     box-shadow: none;

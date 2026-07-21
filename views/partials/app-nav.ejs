@@ -1,40 +1,78 @@
 <%
-  // แถบเมนูบนสำหรับจอ ≥1024px (มือถือใช้ bottom-nav เหมือนเดิม)
+  // แถบเมนูบน — ใช้ทุกขนาดจอ (จอเล็กยุบเมนูเข้าปุ่ม ☰)
   // locals: activeTab — 'home' | 'search' | 'jobs' | 'chat' | 'profile'
   const tab = typeof activeTab !== 'undefined' ? activeTab : null;
-  const cls = (name) => 'app-nav__link' + (name === tab ? ' is-active' : '');
+  const on = (name) => (name === tab ? ' is-active' : '');
+
+  const NAV = [
+    { key: 'home',    href: '/home',           icon: '🗺️', label: 'แผนที่' },
+    { key: 'search',  href: '/search-workers', icon: '🔍', label: 'หาช่าง' },
+    { key: 'jobs',    href: '/jobs',           icon: '💼', label: 'งาน' },
+    { key: 'chat',    href: '/chat',           icon: '💬', label: 'แชต' },
+  ];
 %>
-<nav class="app-nav" aria-label="เมนูหลัก (จอใหญ่)">
+<nav class="app-nav" aria-label="เมนูหลัก">
   <div class="app-nav__bar">
     <a href="/home" class="app-nav__brand">
       <img src="/static/images/logo-96.png" alt="" width="34" height="34">
-      ช่างไทย
+      <span>ช่างไทย</span>
     </a>
 
-    <a href="/home" class="<%= cls('home') %>">🗺️ แผนที่</a>
-    <a href="/search-workers" class="<%= cls('search') %>">🔍 หาช่าง</a>
-    <a href="/jobs" class="<%= cls('jobs') %>">💼 งาน</a>
-    <a href="/chat" class="<%= cls('chat') %>">💬 แชต</a>
+    <!-- เมนูเต็ม — จอกว้างเห็นเรียงกัน จอแคบซ่อนไว้ในปุ่ม ☰ -->
+    <div class="app-nav__links" id="app-nav-links">
+      <% NAV.forEach(function (item) { %>
+        <a href="<%= item.href %>" class="app-nav__link<%= on(item.key) %>">
+          <span aria-hidden="true"><%= item.icon %></span> <%= item.label %>
+        </a>
+      <% }); %>
+      <a href="/profile" class="app-nav__link app-nav__link--me<%= on('profile') %>">
+        <span id="app-nav-avatar" aria-hidden="true"></span>
+        <span id="app-nav-name">โปรไฟล์</span>
+      </a>
+    </div>
 
-    <span class="app-nav__spacer"></span>
-
-    <a href="/profile" class="app-nav__me">
-      <span id="app-nav-avatar"></span>
-      <span id="app-nav-name">โปรไฟล์</span>
-    </a>
+    <button type="button" class="app-nav__burger" id="app-nav-burger"
+            aria-label="เปิดเมนู" aria-expanded="false" aria-controls="app-nav-links">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
 <script>
-  // เติมชื่อ + รูปจาก storage (ไม่ต้องรอ API)
-  // รอ DOMContentLoaded เพราะ auth.js/ui.js โหลดท้าย body
   document.addEventListener('DOMContentLoaded', function () {
-    if (!window.Auth) return;
-    var u = Auth.getUser();
-    if (!u) return;
-    var nameEl = document.getElementById('app-nav-name');
-    if (nameEl) nameEl.textContent = u.user_name || 'โปรไฟล์';
-    var avEl = document.getElementById('app-nav-avatar');
-    if (avEl && window.UI) avEl.innerHTML = UI.avatar(u, 'sm');
+    // เติมชื่อ + รูปจาก storage (auth.js/ui.js โหลดท้าย body)
+    if (window.Auth) {
+      var u = Auth.getUser();
+      if (u) {
+        var nameEl = document.getElementById('app-nav-name');
+        if (nameEl) nameEl.textContent = u.user_name || 'โปรไฟล์';
+        var avEl = document.getElementById('app-nav-avatar');
+        if (avEl && window.UI) avEl.innerHTML = UI.avatar(u, 'sm');
+      }
+    }
+
+    // ปุ่ม ☰ (จอแคบ)
+    var burger = document.getElementById('app-nav-burger');
+    var links = document.getElementById('app-nav-links');
+    if (!burger || !links) return;
+
+    function setOpen(open) {
+      links.classList.toggle('is-open', open);
+      burger.classList.toggle('is-open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    burger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setOpen(!links.classList.contains('is-open'));
+    });
+
+    // กดที่อื่นหรือกด Esc = ปิด
+    document.addEventListener('click', function (e) {
+      if (!links.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setOpen(false);
+    });
   });
 </script>

@@ -1,5 +1,5 @@
 <%- include('../partials/head') %>
-<div class="app-shell app-shell--with-nav">
+<div class="app-shell">
   <%- include('../partials/app-nav', { activeTab: 'jobs' }) %>
   <div class="page-content">
     <div style="margin-bottom: var(--space-md);">
@@ -17,6 +17,5 @@
       <div class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>
     </div>
   </div>
-  <%- include('../partials/bottom-nav', { activeTab: 'jobs' }) %>
 </div>
 <%- include('../partials/foot', { pageScript: 'jobs' }) %>
