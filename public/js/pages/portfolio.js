@@ -92,19 +92,23 @@
         UI.clearFieldErrors(form);
         UI.setFormError(form, null);
 
-        const file = document.getElementById('image').files[0];
+        const picked = document.getElementById('image').files[0];
         const caption = document.getElementById('caption').value.trim();
 
-        if (!file) {
+        if (!picked) {
           UI.setFieldError('image', 'กรุณาเลือกรูป');
-          return;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          UI.setFieldError('image', 'ไฟล์ใหญ่เกิน 5 MB');
           return;
         }
 
         UI.setBtnLoading(btn, true);
+
+        // ย่อก่อนส่ง — รูปจากมือถือมักเกิน 5 MB จนอัปไม่ผ่าน
+        // 1600px พอสำหรับดูผลงานเต็มจอ
+        const file = await ImageCompress.prepareForUpload(picked, {
+          maxSize: 1600, quality: 0.82,
+        });
+        if (!file) { UI.setBtnLoading(btn, false); return; }
+
         try {
           const fd = new FormData();
           fd.append('image', file);

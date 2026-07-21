@@ -125,10 +125,18 @@
 
   // ---- avatar upload ----
   async function uploadAvatar(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const picked = e.target.files[0];
+    if (!picked) return;
     const u = Auth.getUser();
     if (!u) return;
+
+    UI.showLoading('กำลังย่อรูป...');
+    // รูปโปรไฟล์แสดงใหญ่สุดแค่ 96px — 512px เหลือเฟือแม้จอ retina
+    const file = await ImageCompress.prepareForUpload(picked, {
+      maxSize: 512, quality: 0.85,
+    });
+    if (!file) { UI.hideLoading(); e.target.value = ''; return; }
+
     UI.showLoading('กำลังอัปโหลด...');
     try {
       const fd = new FormData();

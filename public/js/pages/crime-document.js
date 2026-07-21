@@ -122,17 +122,21 @@
       UI.clearFieldErrors(form);
       UI.setFormError(form, null);
 
-      const file = fileInput.files[0];
-      if (!file) {
+      const picked = fileInput.files[0];
+      if (!picked) {
         UI.setFieldError('document', 'กรุณาเลือกไฟล์');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        UI.setFieldError('document', 'ไฟล์ใหญ่เกิน 5 MB');
         return;
       }
 
       UI.setBtnLoading(btn, true);
+
+      // ถ้าเป็นรูปย่อให้ก่อน (PDF จะถูกข้ามไปเอง)
+      // เอกสารต้องอ่านออก จึงย่อไม่แรงเท่ารูปผลงาน
+      const file = await ImageCompress.prepareForUpload(picked, {
+        maxSize: 2000, quality: 0.88,
+      });
+      if (!file) { UI.setBtnLoading(btn, false); return; }
+
       try {
         const u = Auth.getUser();
         const wid = await resolveWorkerId(u);
