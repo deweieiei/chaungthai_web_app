@@ -1,0 +1,401 @@
+/* ============================================================
+   map.css — แผนที่ + แถบเมนูบนสำหรับจอใหญ่
+   โหลดคู่กับ theme.css + components.css (ใช้ตัวแปรสีร่วมกัน)
+============================================================ */
+
+/* ============================================================
+   แถบเมนูบน (desktop) — เว็บเต็มตัว ไม่ใช่แอปมือถือ
+   จอเล็กซ่อนไว้ ใช้ bottom-nav เหมือนเดิม
+============================================================ */
+.app-nav { display: none; }
+
+@media (min-width: 1024px) {
+  .app-nav {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .app-nav__bar {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .app-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--primary);
+    text-decoration: none;
+    margin-right: 14px;
+  }
+  .app-nav__brand img { width: 34px; height: 34px; }
+
+  .app-nav__link {
+    padding: 8px 15px;
+    border-radius: 999px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    position: relative;
+    transition: 0.15s;
+  }
+  .app-nav__link:hover { background: var(--surface-muted); color: var(--text); }
+  .app-nav__link.is-active { background: var(--primary-soft); color: var(--primary); }
+
+  .app-nav__spacer { margin-left: auto; }
+
+  .app-nav__me {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 14px 5px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14.5px;
+  }
+  .app-nav__me:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* จอใหญ่: ซ่อนเมนูล่าง + ไม่ต้องเว้นที่ให้มัน */
+  .bottom-nav { display: none !important; }
+  .app-shell--with-nav { padding-bottom: 0 !important; }
+
+  /* เว็บเต็มความกว้าง — ไม่ใช่คอลัมน์มือถือกลางจอ */
+  .app-shell {
+    max-width: 100%;
+    box-shadow: none;
+  }
+  .app-shell > .page-content {
+    max-width: 1240px;
+    margin: 0 auto;
+    width: 100%;
+    padding: var(--space-lg) 24px;
+  }
+}
+
+/* ============================================================
+   หน้าแผนที่
+============================================================ */
+.app-shell--map {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mapbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px 8px;
+  flex: none;
+  z-index: 20;
+}
+.mapbar__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.mapbar__spacer { margin-left: auto; }
+
+.mapbar__locate {
+  border: 1px solid var(--primary);
+  background: #fff;
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mapbar__locate:hover { background: var(--primary-soft); }
+.mapbar__locate:disabled { opacity: 0.5; cursor: wait; }
+
+.mapbar__count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.mapbar__loading { font-size: 13.5px; color: var(--text-faint); }
+
+.mapbar__toggle {
+  display: flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.mapbar__toggle button {
+  border: 0;
+  background: #fff;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mapbar__toggle button.is-on { background: var(--primary); color: #fff; }
+
+/* ชิปหมวดงาน — เลื่อนแนวนอน */
+.mapbar__cats {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  scrollbar-width: thin;
+}
+.mapbar__cats::-webkit-scrollbar { height: 5px; }
+.mapbar__cats::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 3px; }
+
+.catbtn {
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: none;
+  transition: 0.13s;
+}
+.catbtn:hover { border-color: var(--primary); color: var(--primary); }
+.catbtn.is-on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* พื้นที่แผนที่ */
+.mapwrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.mapwrap__map { position: absolute; inset: 0; }
+.mapwrap__map[hidden] { display: none; }
+
+.mapwrap__list {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--surface-alt);
+  padding: var(--space-md);
+}
+
+.map-foot {
+  flex: none;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-faint);
+  padding: 7px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* ไม่เจอช่าง */
+.map-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 400;
+  padding: var(--space-md);
+}
+.map-empty__card {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 26px 30px;
+  text-align: center;
+  max-width: 330px;
+  pointer-events: auto;
+}
+.map-empty__title { font-weight: 800; margin: 8px 0 4px; }
+.map-empty__sub { color: var(--text-muted); font-size: 14px; }
+
+/* ============================================================
+   หมุดบนแผนที่
+============================================================ */
+.ct-pin {
+  width: 38px;
+  height: 38px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  background: var(--gradient-primary, linear-gradient(135deg, #b00000, #970000 45%, #6b0000));
+  border: 2.5px solid #fff;
+  box-shadow: 0 4px 12px rgba(151, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ct-pin span {
+  transform: rotate(45deg);
+  font-size: 17px;
+  line-height: 1;
+}
+.ct-pin--me {
+  width: 42px;
+  height: 42px;
+  animation: ct-pin-drop 0.35s ease-out;
+}
+@keyframes ct-pin-drop {
+  from { transform: rotate(-45deg) translateY(-16px); opacity: 0; }
+  to   { transform: rotate(-45deg) translateY(0); opacity: 1; }
+}
+
+/* ============================================================
+   popup ของหมุด
+============================================================ */
+.leaflet-popup-content { margin: 12px 14px; }
+.leaflet-popup-content-wrapper { border-radius: 14px; }
+
+.ct-pop { font-family: inherit; }
+.ct-pop__name {
+  font-weight: 800;
+  font-size: 15.5px;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.ct-pop__badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--success);
+  white-space: nowrap;
+}
+.ct-pop__bio {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.ct-pop__chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.ct-pop__chip {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.ct-pop__chip--more { background: var(--surface-muted); color: var(--text-muted); }
+.ct-pop__dist, .ct-pop__jobs { font-size: 12.5px; color: var(--text-muted); }
+.ct-pop__note {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin-top: 5px;
+  line-height: 1.35;
+}
+.ct-pop__actions { display: flex; gap: 6px; margin-top: 10px; }
+.ct-pop__btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff !important;
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ct-pop__btn--ghost {
+  flex: none;
+  background: #fff;
+  color: var(--primary) !important;
+  border: 1.5px solid var(--primary);
+}
+
+/* ============================================================
+   แถวช่างในมุมมองลิสต์
+============================================================ */
+.worker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: 0.14s;
+}
+.worker-row:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+.worker-row__body { flex: 1; min-width: 0; }
+.worker-row__name { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+.worker-row__skills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.worker-row__meta { font-size: 12.5px; color: var(--text-faint); }
+.worker-row__go { color: var(--text-faint); font-size: 22px; flex: none; }
+
+.chip--sm {
+  font-size: 11.5px;
+  padding: 2px 9px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 999px;
+  font-weight: 600;
+}
+.badge--success {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   กล่องปักหมุดในหน้าสมัครเป็นช่าง
+============================================================ */
+.pinbox {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+.pinbox__map { height: 260px; }
+.pinbox__foot {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pinbox__coord {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 150px;
+}
+.pinbox__hint {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  padding: 8px 2px 0;
+  line-height: 1.45;
+}

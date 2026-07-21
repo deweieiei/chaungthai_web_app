@@ -1,87 +1,187 @@
-// /home
+// /home — หน้าหลัก = แผนที่ช่างว่างรอบตัว
 (function () {
   'use strict';
   if (!Auth.guard()) return;
 
-  const user = Auth.getUser();
-  const nameEl = document.getElementById('hero-name');
-  if (user) nameEl.textContent = user.user_name || 'ผู้ใช้';
+  const countEl = document.getElementById('map-count');
+  const catScroll = document.getElementById('cat-scroll');
+  const listView = document.getElementById('list-view');
+  const emptyEl = document.getElementById('map-empty');
+  const mapEl = document.getElementById('map');
 
-  // refresh user profile เงียบๆ
-  (async () => {
-    if (!user) return;
-    try {
-      const res = await Api.get('/users/' + user.user_id);
-      const fresh = res.user;
-      Auth.setUser(fresh);
-      nameEl.textContent = fresh.user_name || 'ผู้ใช้';
-    } catch (err) {
-      console.warn('[home] refresh failed', err);
+  let map = null;
+  let categoryId = null;   // หมวดงานที่กรองอยู่ (null = ทุกหมวด)
+  let lastWorkers = [];
+  let loadSeq = 0;         // กันผลลัพธ์เก่ามาทับผลใหม่
+
+  // เปิดมาจากลิงก์ /home?category=3 (หน้าแรกสาธารณะส่งมา)
+  const fromUrl = Number(new URLSearchParams(location.search).get('category'));
+  if (Number.isInteger(fromUrl) && fromUrl > 0) categoryId = fromUrl;
+
+  // ------------------------------------------------------------
+  //  จุดเริ่มต้นของแผนที่
+  //  1) พิกัดที่ผู้ใช้เคยบันทึกไว้ในโปรไฟล์  2) GPS  3) กรุงเทพ
+  // ------------------------------------------------------------
+  async function initialCenter() {
+    const u = Auth.getUser();
+    if (u && u.user_lat != null && u.user_lng != null) {
+      return [Number(u.user_lat), Number(u.user_lng)];
     }
-  })();
-
-  // ---------- section: ช่างของคุณ (favorites) ----------
-  const favSection = document.getElementById('fav-section');
-  const favScroller = document.getElementById('fav-scroller');
-
-  function favCard(f) {
-    const fullName = ((f.user_name || '') + ' ' + (f.user_lastname || '')).trim() || 'ช่าง';
-
-    // แสดงสาขาช่าง (categories) — ถ้ามีหลายอันใส่ +N
-    const cats = Array.isArray(f.skill_categories) ? f.skill_categories : [];
-    let skillsHtml = '';
-    if (cats.length > 0) {
-      const shown = cats.slice(0, 2);
-      const more = cats.length - shown.length;
-      skillsHtml = `
-        <div class="fav-card__skills">
-          ${shown.map((c) => `<span class="fav-card__skill-chip">${UI.escapeHtml(c)}</span>`).join('')}
-          ${more > 0 ? `<span class="fav-card__skill-chip fav-card__skill-chip--more">+${more}</span>` : ''}
-        </div>`;
-    } else {
-      skillsHtml = '<div class="fav-card__skills"><span class="fav-card__skill-chip fav-card__skill-chip--empty">ยังไม่ระบุสกิล</span></div>';
-    }
-
-    return `
-      <div class="fav-card">
-        <a class="fav-card__link" href="/worker/${f.worker_id}">
-          ${UI.avatar({ user_name: f.user_name, user_image: f.user_image }, 'lg')}
-          <div class="fav-card__name">${UI.escapeHtml(fullName)}</div>
-          ${skillsHtml}
-        </a>
-        <div class="fav-card__actions">
-          <a href="/chat/${f.user_id}" class="fav-card__btn" aria-label="แชต" title="แชต">💬</a>
-          <button type="button" class="fav-card__btn" data-hire-user="${f.user_id}" data-hire-name="${UI.escapeHtml(fullName)}" aria-label="จ้างงาน" title="จ้างงาน">💼</button>
-        </div>
-      </div>
-    `;
+    const gps = await CtMap.locate(6000);
+    return gps || CtMap.DEFAULT_CENTER;
   }
 
-  (async () => {
-    try {
-      const res = await Api.get('/favorites/workers');
-      const list = res.favorites || [];
-      if (list.length === 0) {
-        favSection.hidden = true;
-        return;
-      }
-      favSection.hidden = false;
-      favScroller.innerHTML = list.map(favCard).join('');
+  // ------------------------------------------------------------
+  //  โหลดช่างในกรอบที่เห็นอยู่
+  // ------------------------------------------------------------
+  async function loadWorkers() {
+    if (!map) return;
+    const seq = ++loadSeq;
+    countEl.textContent = 'กำลังโหลด…';
 
-      // bind ปุ่มจ้างงาน
-      favScroller.querySelectorAll('button[data-hire-user]').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          JobHelpers.openHireModal({
-            workerUserId: Number(btn.dataset.hireUser),
-            workerName: btn.dataset.hireName,
+    try {
+      const res = await Api.get('/workers/search', {
+        query: {
+          bbox: CtMap.bboxOf(map),
+          skill_category_id: categoryId || undefined,
+          limit: 200,
+        },
+      });
+      if (seq !== loadSeq) return;  // มีการเลื่อนแผนที่ใหม่กว่านี้แล้ว
+
+      lastWorkers = res.workers || [];
+      CtMap.renderWorkers(map, lastWorkers);
+      renderList(lastWorkers);
+
+      countEl.textContent = lastWorkers.length
+        ? 'ช่างว่าง ' + lastWorkers.length + ' คน'
+        : 'ไม่พบช่างในพื้นที่นี้';
+      emptyEl.hidden = lastWorkers.length > 0 || !mapEl.offsetParent;
+    } catch (err) {
+      if (seq !== loadSeq) return;
+      countEl.textContent = 'โหลดไม่สำเร็จ';
+      console.warn('[home] search failed', err.message);
+    }
+  }
+
+  // ------------------------------------------------------------
+  //  มุมมองลิสต์
+  // ------------------------------------------------------------
+  function renderList(workers) {
+    if (!workers.length) {
+      listView.innerHTML =
+        '<p class="text-muted text-center" style="padding:var(--space-xl)">' +
+        'ไม่พบช่างในพื้นที่นี้ ลองซูมออกหรือเลื่อนแผนที่</p>';
+      return;
+    }
+
+    listView.innerHTML = workers.map(function (w) {
+      const fullName = ((w.user_name || '') + ' ' + (w.user_lastname || '')).trim() || 'ช่าง';
+      const skills = (w.all_skills || []).slice(0, 3)
+        .map((s) => '<span class="chip chip--sm">' + UI.escapeHtml(s.skill_name_th) + '</span>')
+        .join('');
+      const more = (w.skill_count || 0) > 3
+        ? '<span class="chip chip--sm">+' + ((w.skill_count || 0) - 3) + '</span>' : '';
+      const verified = w.is_identity_verified
+        ? '<span class="badge badge--success">✅ ยืนยันแล้ว</span>' : '';
+
+      return (
+        '<a class="worker-row" href="/worker/' + w.worker_id + '">' +
+          UI.avatar({ user_name: w.user_name, user_image: w.user_image }, 'md') +
+          '<div class="worker-row__body">' +
+            '<div class="worker-row__name">' + UI.escapeHtml(fullName) + ' ' + verified + '</div>' +
+            '<div class="worker-row__skills">' + skills + more + '</div>' +
+            '<div class="worker-row__meta">รับงานไปแล้ว ' + (w.worker_total_jobs || 0) + ' งาน</div>' +
+          '</div>' +
+          '<span class="worker-row__go" aria-hidden="true">›</span>' +
+        '</a>'
+      );
+    }).join('');
+  }
+
+  // ------------------------------------------------------------
+  //  ชิปหมวดงาน
+  // ------------------------------------------------------------
+  async function loadCategories() {
+    try {
+      const data = await Api.get('/skills');
+      const cats = data.categories || [];
+      catScroll.innerHTML = '';
+
+      cats.forEach(function (c) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'catbtn' + (categoryId === c.skill_category_id ? ' is-on' : '');
+        btn.dataset.cat = c.skill_category_id;
+        const icon = CtMap.CATEGORY_ICONS[c.skill_category_name_th] || '🛠️';
+        btn.textContent = icon + ' ' + c.skill_category_name_th.replace(/^งาน|^บริการ/, '');
+        btn.addEventListener('click', function () {
+          // กดซ้ำที่หมวดเดิม = ยกเลิกตัวกรอง
+          categoryId = categoryId === c.skill_category_id ? null : c.skill_category_id;
+          catScroll.querySelectorAll('.catbtn').forEach((b) => {
+            b.classList.toggle('is-on', Number(b.dataset.cat) === categoryId);
           });
+          loadWorkers();
         });
+        catScroll.appendChild(btn);
       });
     } catch (err) {
-      // เงียบ — section นี้ไม่ critical
-      favSection.hidden = true;
-      console.warn('[home] favorites failed', err.message);
+      catScroll.innerHTML = '<span class="mapbar__loading">โหลดหมวดงานไม่สำเร็จ</span>';
     }
+  }
+
+  // ------------------------------------------------------------
+  //  สลับ แผนที่ ↔ ลิสต์
+  // ------------------------------------------------------------
+  document.querySelectorAll('.mapbar__toggle button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const wantList = btn.dataset.view === 'list';
+      document.querySelectorAll('.mapbar__toggle button').forEach((b) => b.classList.remove('is-on'));
+      btn.classList.add('is-on');
+
+      mapEl.hidden = wantList;
+      listView.hidden = !wantList;
+      emptyEl.hidden = wantList || lastWorkers.length > 0;
+
+      // Leaflet ต้องคำนวณขนาดใหม่หลังถูกซ่อนแล้วโชว์
+      if (!wantList && map) setTimeout(() => map.invalidateSize(), 50);
+    });
+  });
+
+  // ------------------------------------------------------------
+  //  ปุ่มใกล้ฉัน
+  // ------------------------------------------------------------
+  document.getElementById('btn-locate').addEventListener('click', async function () {
+    const btn = this;
+    btn.disabled = true;
+    const pos = await CtMap.locate();
+    btn.disabled = false;
+    if (!pos) {
+      UI.toast('ขอตำแหน่งไม่สำเร็จ — เปิดสิทธิ์ตำแหน่งในเบราว์เซอร์ก่อน', 'warning');
+      return;
+    }
+    map.setView(pos, 14);   // moveend จะไปเรียก loadWorkers เอง
+  });
+
+  // ------------------------------------------------------------
+  //  เริ่ม
+  // ------------------------------------------------------------
+  (async function start() {
+    loadCategories();
+
+    try {
+      await CtMap.ensureLeaflet();
+    } catch (err) {
+      countEl.textContent = 'โหลดแผนที่ไม่สำเร็จ';
+      mapEl.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-xl)">' +
+        UI.escapeHtml(err.message) + '</p>';
+      return;
+    }
+
+    const center = await initialCenter();
+    map = CtMap.create('#map', { center: center, zoom: 13 });
+
+    CtMap.onViewChange(map, loadWorkers);
+    loadWorkers();
   })();
 })();

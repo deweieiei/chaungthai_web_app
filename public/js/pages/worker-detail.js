@@ -9,7 +9,6 @@
   function render(d) {
     const u = d.user;
     const w = d.worker;
-    const loc = d.location || {};
     const fullName = ((u.user_name || '') + ' ' + (u.user_lastname || '')).trim() || 'ผู้ใช้';
 
     const verifiedBadges = [];
@@ -27,8 +26,14 @@
       verifiedBadges.push('<span class="chip chip--warning">⚠ ยังไม่ตรวจประวัติ</span>');
     }
 
-    const locParts = [loc.subdistrict_name_th, loc.district_name_th, loc.province_name_th]
-      .filter(Boolean).join(' · ');
+    // พื้นที่รับงาน — ตอนนี้เป็นหมุดบนแผนที่ + รัศมี ไม่ใช่จังหวัด/อำเภอ/ตำบลแล้ว
+    const hasPin = w.worker_lat != null && w.worker_lng != null;
+    const areaText = hasPin
+      ? 'รับงานในรัศมี ' + (w.worker_service_radius_km || 10) + ' กม. จากจุดที่ปักไว้'
+      : 'ยังไม่ได้ปักหมุดจุดรับงาน';
+    const availText = w.worker_availability === 'busy'
+      ? '<span class="chip chip--warning">กำลังรับงานอยู่</span>'
+      : '<span class="chip chip--success">ว่างรับงาน</span>';
 
     // group skills by category
     const groups = {};
@@ -202,10 +207,10 @@
       ${phoneSection}
 
       <div class="card">
-        <div class="card__title">📍 ที่อยู่</div>
-        <div>${UI.escapeHtml(locParts || '-')}</div>
-        ${loc.zip_code ? `<div class="text-small text-muted">รหัสไปรษณีย์ ${loc.zip_code}</div>` : ''}
-        ${u.user_address ? `<div style="margin-top: 6px;">${UI.escapeHtml(u.user_address)}</div>` : ''}
+        <div class="card__title">📍 พื้นที่รับงาน ${availText}</div>
+        <div>${UI.escapeHtml(areaText)}</div>
+        ${hasPin ? '<div class="pinbox" style="margin-top:10px"><div class="pinbox__map" id="worker-map" style="height:200px"></div></div>' : ''}
+        ${w.location_is_blurred ? '<div class="text-small text-muted" style="margin-top:6px">แสดงเป็นพื้นที่คร่าว ๆ · ยืนยันตัวตนแล้วจะเห็นชัดขึ้น</div>' : ''}
       </div>
 
       ${crimeStatusCard}
@@ -224,6 +229,33 @@
 
       ${portfolioCard}
     `;
+
+    if (hasPin) renderWorkerMap(w);
+  }
+
+  // แผนที่เล็กโชว์พื้นที่รับงานของช่าง
+  async function renderWorkerMap(w) {
+    const el = document.getElementById('worker-map');
+    if (!el || !window.CtMap) return;
+    try {
+      await CtMap.ensureLeaflet();
+    } catch {
+      el.parentElement.remove();
+      return;
+    }
+    const at = [Number(w.worker_lat), Number(w.worker_lng)];
+    const map = CtMap.create('#worker-map', { center: at, zoom: 13, scrollWheelZoom: false });
+    L.circle(at, {
+      radius: (w.worker_service_radius_km || 10) * 1000,
+      color: '#970000', weight: 1.5, fillColor: '#970000', fillOpacity: 0.08,
+    }).addTo(map);
+    L.marker(at, {
+      icon: L.divIcon({
+        className: '',
+        html: '<div class="ct-pin"><span>🛠️</span></div>',
+        iconSize: [38, 38], iconAnchor: [19, 38],
+      }),
+    }).addTo(map);
   }
 
   function bindHireButton(d) {

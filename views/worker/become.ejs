@@ -13,7 +13,30 @@
       <label class="field__label" for="resume">แนะนำตัว / ประวัติงาน (ไม่บังคับ)</label>
       <textarea class="textarea" id="resume" rows="3" placeholder="เช่น ช่างไฟฟ้า 10 ปี รับงานทั่วกรุงเทพ"></textarea>
     </div>
-    <h3 class="section-title" style="margin-bottom: 4px;">เลือกสกิลที่คุณรับงาน</h3>
+
+    <h3 class="section-title" style="margin-bottom: 8px;">ปักหมุดจุดที่คุณรับงาน</h3>
+    <div class="pinbox">
+      <div class="pinbox__map" id="pin-map"></div>
+      <div class="pinbox__foot">
+        <span class="pinbox__coord" id="pin-coord">กำลังหาตำแหน่ง…</span>
+        <button type="button" class="mapbar__locate" id="btn-my-location">🎯 ตำแหน่งฉัน</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top: var(--space-sm);">
+      <label class="field__label" for="radius">รัศมีที่ยอมเดินทางไปทำงาน</label>
+      <select class="select" id="radius">
+        <option value="5">ในระยะ 5 กม.</option>
+        <option value="10" selected>ในระยะ 10 กม.</option>
+        <option value="20">ในระยะ 20 กม.</option>
+        <option value="50">ในระยะ 50 กม.</option>
+      </select>
+    </div>
+    <p class="pinbox__hint">
+      แตะบนแผนที่หรือลากหมุดเพื่อเลือกจุด · คนทั่วไปจะเห็นแค่พื้นที่คร่าว ๆ ราว 1 กม.
+      ไม่เห็นตำแหน่งเป๊ะ ยืนยันตัวตนแล้วคนจ้างถึงเห็นชัดขึ้น
+    </p>
+
+    <h3 class="section-title" style="margin: var(--space-lg) 0 4px;">เลือกสกิลที่คุณรับงาน</h3>
   </div>
 
   <div id="skill-mount" style="flex: 1;"></div>
@@ -27,6 +50,7 @@
 <script src="/static/js/api.js?v=<%= assetV %>"></script>
 <script src="/static/js/ui.js?v=<%= assetV %>"></script>
 <script src="/static/js/skill-tree.js?v=<%= assetV %>"></script>
+<script src="/static/js/map.js?v=<%= assetV %>"></script>
 <script src="/static/js/pages/become-worker.js?v=<%= assetV %>"></script>
 </body>
 </html>

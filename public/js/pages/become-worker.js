@@ -5,7 +5,70 @@
 
   const form = document.querySelector('.app-shell');
   const submitBtn = document.getElementById('submit-btn');
+  const elRadius = document.getElementById('radius');
+  const elCoord = document.getElementById('pin-coord');
   let selectedSet = new Set();
+
+  // ------------------------------------------------------------
+  //  ปักหมุดจุดรับงาน
+  // ------------------------------------------------------------
+  let pinMap = null;
+  let pin = null;          // [lat, lng]
+  let radiusCircle = null;
+
+  function paintCoord() {
+    elCoord.textContent = pin
+      ? 'จุดรับงาน: ' + pin[0].toFixed(4) + ', ' + pin[1].toFixed(4)
+      : 'ยังไม่ได้ปักหมุด';
+  }
+
+  elRadius.addEventListener('change', function () {
+    if (radiusCircle) radiusCircle.setRadius(Number(elRadius.value) * 1000);
+  });
+
+  document.getElementById('btn-my-location').addEventListener('click', async function () {
+    this.disabled = true;
+    const pos = await CtMap.locate();
+    this.disabled = false;
+    if (!pos) {
+      UI.toast('ขอตำแหน่งไม่สำเร็จ — เปิดสิทธิ์ตำแหน่งในเบราว์เซอร์ก่อน', 'warning');
+      return;
+    }
+    pin = pos;
+    pinMap.setView(pos, 15);
+    if (radiusCircle) radiusCircle.setLatLng(pos);
+    paintCoord();
+  });
+
+  (async function initPinMap() {
+    try {
+      await CtMap.ensureLeaflet();
+    } catch (err) {
+      elCoord.textContent = 'โหลดแผนที่ไม่สำเร็จ — สมัครได้ แล้วค่อยปักหมุดทีหลัง';
+      return;
+    }
+
+    let start = await CtMap.locate(6000);
+    if (!start) start = CtMap.DEFAULT_CENTER;
+
+    pinMap = CtMap.create('#pin-map', { center: start, zoom: 14, scrollWheelZoom: false });
+    radiusCircle = L.circle(start, {
+      radius: Number(elRadius.value) * 1000,
+      color: '#970000',
+      weight: 1.5,
+      fillColor: '#970000',
+      fillOpacity: 0.08,
+    }).addTo(pinMap);
+
+    CtMap.pinMarker(pinMap, start, function (lat, lng) {
+      pin = [lat, lng];
+      radiusCircle.setLatLng(pin);
+      paintCoord();
+    });
+
+    pin = start;
+    paintCoord();
+  })();
 
   function updateBtn() {
     submitBtn.textContent = `สมัครเป็นช่าง (${selectedSet.size} สกิล)`;
@@ -34,6 +97,9 @@
       const res = await Api.post('/workers', {
         worker_resume: resume || undefined,
         skill_ids: Array.from(selectedSet),
+        worker_lat: pin ? pin[0] : undefined,
+        worker_lng: pin ? pin[1] : undefined,
+        worker_service_radius_km: Number(elRadius.value),
       });
       // อัปเดต role + worker_id ใน storage (ใช้ในหน้า edit-skills/home)
       const u = Auth.getUser();
@@ -49,7 +115,10 @@
             <h3 class="modal__title">สมัครเป็นช่างสำเร็จ!</h3>
             <div class="modal__body">
               คุณได้รับบัตรรับงานเริ่มต้น <strong>${res.worker_job_tickets} ใบ</strong><br>
-              เลือกสกิลแล้ว <strong>${res.skill_count} อัน</strong>
+              เลือกสกิลแล้ว <strong>${res.skill_count} อัน</strong><br>
+              ${res.has_pin
+                ? 'ปักหมุดแล้ว — คุณจะขึ้นบนแผนที่ให้คนแถวนั้นเห็นทันที 🗺️'
+                : '<span style="color:var(--warning)">ยังไม่ได้ปักหมุด — ไปปักในหน้าโปรไฟล์เพื่อให้ขึ้นแผนที่</span>'}
             </div>
             <button class="btn btn--primary btn--block" data-act="ok">ไปหน้าหลัก</button>
           </div>`;

@@ -6,10 +6,9 @@
   const elCategory = document.getElementById('category');
   const elSubcategory = document.getElementById('subcategory');
   const elSkill = document.getElementById('skill');
-  const elProvince = document.getElementById('province');
-  const elDistrict = document.getElementById('district');
-  const elSubdistrict = document.getElementById('subdistrict');
-  const elAuto = document.getElementById('auto-expand');
+  const elRadius = document.getElementById('radius');
+  const elCoord = document.getElementById('area-coord');
+  const btnHere = document.getElementById('btn-here');
   const btnSearch = document.getElementById('search-btn');
   const elResults = document.getElementById('results-area');
 
@@ -62,13 +61,10 @@
     paint();
   }
 
-  // apply กับ 6 fields หลัก (apply หลัง DOM พร้อม)
+  // apply กับ dropdown สกิล 3 ชั้น (พื้นที่ใช้แผนที่แทนแล้ว)
   makeCollapsible(elCategory, '🔧', 'หมวด');
   makeCollapsible(elSubcategory, '🔧', 'สาขา');
   makeCollapsible(elSkill, '🔧', 'สกิล');
-  makeCollapsible(elProvince, '📍', 'จังหวัด');
-  makeCollapsible(elDistrict, '📍', 'อำเภอ');
-  makeCollapsible(elSubdistrict, '📍', 'ตำบล');
 
   // ---------- Collapsible card ----------
   // title กดเพื่อ toggle เปิด/ปิด — auto collapse เมื่อเลือกครบทุก dropdown ใน card
@@ -107,10 +103,6 @@
   const skillsCard = elCategory.closest('.card');
   const skillsCtrl = skillsCard && makeCardCollapsible(skillsCard);
 
-  // card 2: พื้นที่
-  const areaCard = elProvince.closest('.card');
-  const areaCtrl = areaCard && makeCardCollapsible(areaCard);
-
   // auto collapse เมื่อ "เลือกครบทั้ง 3 dropdown" ใน card
   function maybeCollapse(ctrl, selects) {
     if (!ctrl) return;
@@ -120,11 +112,6 @@
   [elCategory, elSubcategory, elSkill].forEach((sel) =>
     sel.addEventListener('change', () =>
       maybeCollapse(skillsCtrl, [elCategory, elSubcategory, elSkill])
-    )
-  );
-  [elProvince, elDistrict, elSubdistrict].forEach((sel) =>
-    sel.addEventListener('change', () =>
-      maybeCollapse(areaCtrl, [elProvince, elDistrict, elSubdistrict])
     )
   );
 
@@ -206,69 +193,85 @@
     elSkill.disabled = false;
   });
 
-  // ----- location cascade (เหมือนเดิม) -----
-  // sort ภาษาไทย (ก-ฮ) — ใช้กับทุก dropdown location
-  const TH_COLLATOR = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
-  function sortBy(arr, key) {
-    return [...arr].sort((a, b) => TH_COLLATOR.compare(a[key] || '', b[key] || ''));
+  // ----- เลือกพื้นที่บนแผนที่ (แทน dropdown จังหวัด/อำเภอ/ตำบลเดิม) -----
+  let areaMap = null;
+  let areaMarker = null;
+  let areaCircle = null;
+  let center = null;   // [lat, lng] จุดกึ่งกลางที่จะค้นหารอบ ๆ
+
+  function paintCoord() {
+    if (!center) {
+      elCoord.textContent = 'ยังไม่ได้เลือกจุด';
+      return;
+    }
+    elCoord.textContent =
+      'จุดที่เลือก: ' + center[0].toFixed(4) + ', ' + center[1].toFixed(4) +
+      ' · รัศมี ' + elRadius.value + ' กม.';
   }
 
-  (async () => {
+  function moveTo(lat, lng, zoom) {
+    center = [lat, lng];
+    if (areaMarker) areaMarker.setLatLng(center);
+    if (areaCircle) areaCircle.setLatLng(center);
+    if (zoom) areaMap.setView(center, zoom);
+    paintCoord();
+  }
+
+  function paintCircle() {
+    if (areaCircle) areaCircle.setRadius(Number(elRadius.value) * 1000);
+    paintCoord();
+  }
+
+  elRadius.addEventListener('change', paintCircle);
+
+  btnHere.addEventListener('click', async function () {
+    btnHere.disabled = true;
+    const pos = await CtMap.locate();
+    btnHere.disabled = false;
+    if (!pos) {
+      UI.toast('ขอตำแหน่งไม่สำเร็จ — เปิดสิทธิ์ตำแหน่งในเบราว์เซอร์ก่อน', 'warning');
+      return;
+    }
+    moveTo(pos[0], pos[1], 13);
+  });
+
+  (async function initAreaMap() {
     try {
-      const res = await Api.get('/locations/provinces');
-      const items = sortBy(res.provinces, 'province_name_th');
-      elProvince.innerHTML = '<option value="">-- เลือกจังหวัด --</option>' +
-        items.map((p) => `<option value="${p.province_id}">${UI.escapeHtml(p.province_name_th)}</option>`).join('');
+      await CtMap.ensureLeaflet();
     } catch (err) {
-      elProvince.innerHTML = '<option value="">โหลดไม่ได้</option>';
+      elCoord.textContent = 'โหลดแผนที่ไม่สำเร็จ';
+      return;
     }
+
+    // จุดเริ่ม: พิกัดในโปรไฟล์ → GPS → กรุงเทพ
+    const u = Auth.getUser();
+    let start = (u && u.user_lat != null && u.user_lng != null)
+      ? [Number(u.user_lat), Number(u.user_lng)]
+      : null;
+    if (!start) start = await CtMap.locate(6000);
+    if (!start) start = CtMap.DEFAULT_CENTER;
+
+    areaMap = CtMap.create('#area-map', { center: start, zoom: 12, scrollWheelZoom: false });
+    areaCircle = L.circle(start, {
+      radius: Number(elRadius.value) * 1000,
+      color: '#970000',
+      weight: 1.5,
+      fillColor: '#970000',
+      fillOpacity: 0.08,
+    }).addTo(areaMap);
+    areaMarker = CtMap.pinMarker(areaMap, start, function (lat, lng) {
+      moveTo(lat, lng);
+    });
+
+    center = start;
+    paintCoord();
   })();
-
-  elProvince.addEventListener('change', async () => {
-    const id = elProvince.value;
-    elSubdistrict.disabled = true;
-    elSubdistrict.innerHTML = '<option value="">เลือกอำเภอก่อน</option>';
-    if (!id) {
-      elDistrict.disabled = true;
-      elDistrict.innerHTML = '<option value="">เลือกจังหวัดก่อน</option>';
-      return;
-    }
-    elDistrict.disabled = false;
-    elDistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
-    try {
-      const res = await Api.get('/locations/districts', { query: { province_id: id } });
-      const items = sortBy(res.districts, 'district_name_th');
-      elDistrict.innerHTML = '<option value="">-- ไม่ระบุ --</option>' +
-        items.map((d) => `<option value="${d.district_id}">${UI.escapeHtml(d.district_name_th)}</option>`).join('');
-    } catch {
-      elDistrict.innerHTML = '<option value="">โหลดไม่ได้</option>';
-    }
-  });
-
-  elDistrict.addEventListener('change', async () => {
-    const id = elDistrict.value;
-    if (!id) {
-      elSubdistrict.disabled = true;
-      elSubdistrict.innerHTML = '<option value="">เลือกอำเภอก่อน</option>';
-      return;
-    }
-    elSubdistrict.disabled = false;
-    elSubdistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
-    try {
-      const res = await Api.get('/locations/subdistricts', { query: { district_id: id } });
-      const items = sortBy(res.subdistricts, 'subdistrict_name_th');
-      elSubdistrict.innerHTML = '<option value="">-- ไม่ระบุ --</option>' +
-        items.map((s) => `<option value="${s.subdistrict_id}">${UI.escapeHtml(s.subdistrict_name_th)} (${s.subdistrict_zip_code || '-'})</option>`).join('');
-    } catch {
-      elSubdistrict.innerHTML = '<option value="">โหลดไม่ได้</option>';
-    }
-  });
 
   // ----- submit search -----
   btnSearch.addEventListener('click', async () => {
     UI.setFieldError('skill', null);
-    if (!elProvince.value) {
-      UI.toast('กรุณาเลือกจังหวัด', 'warning');
+    if (!center) {
+      UI.toast('กรุณาเลือกจุดบนแผนที่ก่อน', 'warning');
       return;
     }
 
@@ -276,10 +279,12 @@
     elResults.innerHTML = '<div class="loading-block"><div class="spinner"></div><div>กำลังค้นหา...</div></div>';
 
     try {
-      const query = { province_id: elProvince.value };
-      if (elDistrict.value) query.district_id = elDistrict.value;
-      if (elSubdistrict.value) query.subdistrict_id = elSubdistrict.value;
-      if (elAuto.checked) query.auto_expand = 'true';
+      const query = {
+        lat: center[0],
+        lng: center[1],
+        radius_km: elRadius.value,
+        limit: 100,
+      };
 
       // ส่ง filter ที่เฉพาะที่สุด (server จะใช้อันที่เฉพาะที่สุด แต่ส่งครบไปเลย)
       if (elSkill.value) query.skill_id = elSkill.value;
@@ -298,13 +303,6 @@
       UI.setBtnLoading(btnSearch, false);
     }
   });
-
-  function levelLabel(level) {
-    if (level === 'subdistrict') return 'ตำบลที่เลือก';
-    if (level === 'district') return 'อำเภอที่เลือก';
-    if (level === 'province') return 'จังหวัดที่เลือก';
-    return 'พื้นที่';
-  }
 
   // เก็บ filter ปัจจุบันสำหรับ matching ใน worker card
   let currentFilter = null;
@@ -362,7 +360,7 @@
       elResults.innerHTML = `<div class="empty-state">
         <div class="empty-state__icon">🔍</div>
         <div class="empty-state__title">ไม่พบช่างในพื้นที่นี้</div>
-        <p class="text-muted text-small">${elAuto.checked ? 'ลองเปลี่ยนสกิลหรือพื้นที่' : 'ลองเปิด "ขยายค้นหาอัตโนมัติ"'}</p>
+        <p class="text-muted text-small">ลองขยายระยะทาง เลื่อนจุดบนแผนที่ หรือเอาตัวกรองสกิลออก</p>
       </div>`;
       return;
     }
@@ -372,7 +370,7 @@
     const matchedHtml = `
       <div class="alert alert--info" style="margin-top: var(--space-md);">
         <span class="alert__icon">📍</span>
-        <span>พบ <strong>${res.total}</strong> คน ${filterLabel ? '· ' + filterLabel + ' ' : ''}${res.matched_level ? 'ใน' + levelLabel(res.matched_level) : ''}</span>
+        <span>พบ <strong>${res.total}</strong> คน ${filterLabel ? '· ' + filterLabel + ' ' : ''}ในรัศมี ${elRadius.value} กม. · เรียงจากใกล้สุด</span>
       </div>`;
 
     const cardsHtml = res.workers.map((w) => renderWorkerCard(w, res.applied_filter)).join('');
@@ -398,8 +396,10 @@
 
   function renderWorkerCard(w, applied) {
     const name = ((w.user_name || '') + ' ' + (w.user_lastname || '')).trim() || 'ผู้ใช้';
-    const locParts = [w.subdistrict_name_th, w.district_name_th, w.province_name_th]
-      .filter(Boolean).join(' · ');
+    // เดิมโชว์ ตำบล·อำเภอ·จังหวัด — ตอนนี้ใช้ระยะทางจากจุดที่เลือกแทน
+    const locParts = w.distance_km != null
+      ? 'ห่างประมาณ ' + w.distance_km + ' กม.'
+      : '';
 
     const allSkills = Array.isArray(w.all_skills) ? w.all_skills : [];
     // แยก matched / unmatched ตาม filter

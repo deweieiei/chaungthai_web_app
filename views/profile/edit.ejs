@@ -34,16 +34,17 @@
       <h3 class="section-title">ที่อยู่</h3>
       <div class="card">
         <div class="field">
-          <label class="field__label" for="province">จังหวัด</label>
-          <select class="select" id="province"><option value="">-- เลือกจังหวัด --</option></select>
-        </div>
-        <div class="field">
-          <label class="field__label" for="district">อำเภอ/เขต</label>
-          <select class="select" id="district" disabled><option value="">เลือกจังหวัดก่อน</option></select>
-        </div>
-        <div class="field">
-          <label class="field__label" for="subdistrict">ตำบล/แขวง</label>
-          <select class="select" id="subdistrict" disabled><option value="">เลือกอำเภอก่อน</option></select>
+          <label class="field__label">ตำแหน่งบนแผนที่</label>
+          <div class="pinbox">
+            <div class="pinbox__map" id="home-map"></div>
+            <div class="pinbox__foot">
+              <span class="pinbox__coord" id="home-coord">ยังไม่ได้ปักหมุด</span>
+              <button type="button" class="mapbar__locate" id="btn-my-home">🎯 ตำแหน่งฉัน</button>
+            </div>
+          </div>
+          <p class="pinbox__hint">
+            ใช้เปิดแผนที่ที่ตำแหน่งของคุณตอนหาช่าง — ไม่ได้แสดงให้คนอื่นเห็น
+          </p>
         </div>
         <div class="field" style="margin-bottom: 0;">
           <label class="field__label" for="address">ที่อยู่ (บ้านเลขที่ ซอย ฯลฯ)</label>
@@ -55,4 +56,5 @@
     </form>
   </div>
 </div>
+<script src="/static/js/map.js?v=<%= assetV %>"></script>
 <%- include('../partials/foot', { pageScript: 'profile-edit' }) %>

@@ -1,9 +1,10 @@
 <%- include('partials/head') %>
 <div class="app-shell app-shell--with-nav">
+  <%- include('partials/app-nav', { activeTab: 'search' }) %>
   <div class="page-content">
     <div style="margin-bottom: var(--space-md);">
       <h2 style="margin-bottom: 4px;">หาช่าง</h2>
-      <p class="text-small text-muted" style="margin: 0;">เลือกหมวด สกิล และพื้นที่ที่ต้องการ</p>
+      <p class="text-small text-muted" style="margin: 0;">เลือกความสามารถที่ต้องการ แล้วกำหนดพื้นที่บนแผนที่</p>
     </div>
 
     <div class="card card--elevated">
@@ -38,30 +39,28 @@
     <div class="card card--elevated">
       <h4 class="card__title" style="margin-bottom: var(--space-sm);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);" aria-hidden="true"><path d="M20 10c0 7-8 12-8 12s-8-5-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        พื้นที่ <span class="text-danger">*</span>
+        พื้นที่ที่ต้องการหา
       </h4>
 
       <div class="field">
-        <label class="field__label" for="province">จังหวัด <span class="text-danger">*</span></label>
-        <select class="select" id="province"><option value="">กำลังโหลด...</option></select>
-      </div>
-      <div class="field">
-        <label class="field__label" for="district">อำเภอ/เขต</label>
-        <select class="select" id="district" disabled><option value="">เลือกจังหวัดก่อน</option></select>
-      </div>
-      <div class="field">
-        <label class="field__label" for="subdistrict">ตำบล/แขวง</label>
-        <select class="select" id="subdistrict" disabled><option value="">เลือกอำเภอก่อน</option></select>
+        <label class="field__label" for="radius">ระยะทางจากจุดที่เลือก</label>
+        <select class="select" id="radius">
+          <option value="5">ไม่เกิน 5 กม.</option>
+          <option value="10" selected>ไม่เกิน 10 กม.</option>
+          <option value="20">ไม่เกิน 20 กม.</option>
+          <option value="50">ไม่เกิน 50 กม.</option>
+          <option value="100">ไม่เกิน 100 กม.</option>
+        </select>
       </div>
 
-      <label class="switch">
-        <input type="checkbox" id="auto-expand" checked>
-        <span class="switch__track"></span>
-        <span class="switch__label">
-          <div class="switch__label-main">ขยายค้นหาอัตโนมัติ</div>
-          <div class="switch__label-sub">ไม่เจอในตำบล → ลองอำเภอ → จังหวัด</div>
-        </span>
-      </label>
+      <div class="pinbox">
+        <div class="pinbox__map" id="area-map"></div>
+        <div class="pinbox__foot">
+          <span class="pinbox__coord" id="area-coord">กำลังหาตำแหน่ง…</span>
+          <button type="button" class="mapbar__locate" id="btn-here">🎯 ตำแหน่งฉัน</button>
+        </div>
+      </div>
+      <p class="pinbox__hint">แตะบนแผนที่หรือลากหมุด เพื่อเลือกจุดที่อยากหาช่างรอบ ๆ</p>
     </div>
 
     <button class="btn btn--primary btn--block btn--lg" id="search-btn" style="margin-top: var(--space-md);">
@@ -73,4 +72,5 @@
   </div>
   <%- include('partials/bottom-nav', { activeTab: 'search' }) %>
 </div>
+<script src="/static/js/map.js?v=<%= assetV %>"></script>
 <%- include('partials/foot', { pageScript: 'search' }) %>

@@ -5,9 +5,7 @@
 
   const form = document.getElementById('edit-form');
   const submitBtn = form.querySelector('button[type="submit"]');
-  const elProvince = document.getElementById('province');
-  const elDistrict = document.getElementById('district');
-  const elSubdistrict = document.getElementById('subdistrict');
+  const elCoord = document.getElementById('home-coord');
 
   const u = Auth.getUser() || {};
   // pre-fill
@@ -18,82 +16,49 @@
   document.getElementById('bio').value = u.user_bio || '';
   document.getElementById('address').value = u.user_address || '';
 
-  // sort ภาษาไทย (ก-ฮ)
-  const TH_COLLATOR = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
-  function sortBy(arr, key) {
-    return [...arr].sort((a, b) => TH_COLLATOR.compare(a[key] || '', b[key] || ''));
-  }
+  // ------------------------------------------------------------
+  //  ปักหมุดที่อยู่ (แทน dropdown จังหวัด/อำเภอ/ตำบลเดิม)
+  //  ใช้เปิดแผนที่ที่ตำแหน่งตัวเองตอนหาช่าง — ไม่โชว์ให้คนอื่น
+  // ------------------------------------------------------------
+  let homeMap = null;
+  let home = (u.user_lat != null && u.user_lng != null)
+    ? [Number(u.user_lat), Number(u.user_lng)]
+    : null;
 
-  function fillSelect(el, items, valueKey, labelKey, current) {
-    el.innerHTML = '<option value="">-- เลือก --</option>' +
-      items.map((it) =>
-        `<option value="${it[valueKey]}" ${String(it[valueKey]) === String(current) ? 'selected' : ''}>${UI.escapeHtml(it[labelKey])}</option>`
-      ).join('');
+  function paintCoord() {
+    elCoord.textContent = home
+      ? 'ตำแหน่ง: ' + home[0].toFixed(4) + ', ' + home[1].toFixed(4)
+      : 'ยังไม่ได้ปักหมุด';
   }
+  paintCoord();
 
-  async function loadProvinces() {
-    try {
-      const res = await Api.get('/locations/provinces');
-      const items = sortBy(res.provinces, 'province_name_th');
-      fillSelect(elProvince, items, 'province_id', 'province_name_th', u.user_province_id);
-      if (u.user_province_id) loadDistricts(u.user_province_id, u.user_district_id);
-    } catch (err) {
-      UI.toast('โหลดจังหวัดไม่ได้', 'danger');
-    }
-  }
-
-  async function loadDistricts(provinceId, current) {
-    if (!provinceId) {
-      elDistrict.disabled = true;
-      elDistrict.innerHTML = '<option value="">เลือกจังหวัดก่อน</option>';
-      elSubdistrict.disabled = true;
-      elSubdistrict.innerHTML = '<option value="">เลือกอำเภอก่อน</option>';
+  document.getElementById('btn-my-home').addEventListener('click', async function () {
+    this.disabled = true;
+    const pos = await CtMap.locate();
+    this.disabled = false;
+    if (!pos) {
+      UI.toast('ขอตำแหน่งไม่สำเร็จ — เปิดสิทธิ์ตำแหน่งในเบราว์เซอร์ก่อน', 'warning');
       return;
     }
-    elDistrict.disabled = false;
-    elDistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
-    try {
-      const res = await Api.get('/locations/districts', { query: { province_id: provinceId } });
-      const items = sortBy(res.districts, 'district_name_th');
-      fillSelect(elDistrict, items, 'district_id', 'district_name_th', current);
-      if (current) loadSubdistricts(current, u.user_subdistrict_id);
-      else {
-        elSubdistrict.disabled = true;
-        elSubdistrict.innerHTML = '<option value="">เลือกอำเภอก่อน</option>';
-      }
-    } catch (err) {
-      elDistrict.innerHTML = '<option value="">โหลดไม่ได้</option>';
-    }
-  }
+    home = pos;
+    if (homeMap) homeMap.setView(pos, 15);
+    paintCoord();
+  });
 
-  async function loadSubdistricts(districtId, current) {
-    if (!districtId) {
-      elSubdistrict.disabled = true;
-      elSubdistrict.innerHTML = '<option value="">เลือกอำเภอก่อน</option>';
+  (async function initHomeMap() {
+    try {
+      await CtMap.ensureLeaflet();
+    } catch (err) {
+      elCoord.textContent = 'โหลดแผนที่ไม่สำเร็จ';
       return;
     }
-    elSubdistrict.disabled = false;
-    elSubdistrict.innerHTML = '<option value="">กำลังโหลด...</option>';
-    try {
-      const res = await Api.get('/locations/subdistricts', { query: { district_id: districtId } });
-      const items = sortBy(res.subdistricts, 'subdistrict_name_th').map((s) => ({
-        ...s,
-        label: `${s.subdistrict_name_th} (${s.subdistrict_zip_code || '-'})`,
-      }));
-      fillSelect(elSubdistrict, items, 'subdistrict_id', 'label', current);
-    } catch (err) {
-      elSubdistrict.innerHTML = '<option value="">โหลดไม่ได้</option>';
-    }
-  }
-
-  elProvince.addEventListener('change', () => {
-    loadDistricts(elProvince.value, null);
-  });
-  elDistrict.addEventListener('change', () => {
-    loadSubdistricts(elDistrict.value, null);
-  });
-
-  loadProvinces();
+    const start = home || CtMap.DEFAULT_CENTER;
+    homeMap = CtMap.create('#home-map', { center: start, zoom: home ? 15 : 11, scrollWheelZoom: false });
+    CtMap.pinMarker(homeMap, start, function (lat, lng) {
+      home = [lat, lng];
+      paintCoord();
+    });
+  })();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -114,9 +79,8 @@
       user_phone: phone || null,
       user_address: document.getElementById('address').value.trim() || null,
       user_bio: document.getElementById('bio').value.trim() || null,
-      user_province_id: elProvince.value ? Number(elProvince.value) : null,
-      user_district_id: elDistrict.value ? Number(elDistrict.value) : null,
-      user_subdistrict_id: elSubdistrict.value ? Number(elSubdistrict.value) : null,
+      user_lat: home ? home[0] : null,
+      user_lng: home ? home[1] : null,
       user_birthday: document.getElementById('birthday').value || null,
     };
 

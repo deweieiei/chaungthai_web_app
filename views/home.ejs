@@ -1,26 +1,47 @@
 <%- include('partials/head') %>
-<div class="app-shell app-shell--with-nav">
-  <div class="page-content">
-    <div class="hero">
-      <div class="hero__greeting">สวัสดี 👋</div>
-      <h2 class="hero__name" id="hero-name">ผู้ใช้</h2>
-      <div class="hero__sub">ยินดีต้อนรับสู่ ChaungThai</div>
+<div class="app-shell app-shell--with-nav app-shell--map">
+  <%- include('partials/app-nav', { activeTab: 'home' }) %>
+
+  <!-- แถบกรองลอยเหนือแผนที่ -->
+  <div class="mapbar">
+    <div class="mapbar__row">
+      <button type="button" class="mapbar__locate" id="btn-locate" title="ไปที่ตำแหน่งของฉัน">
+        <span aria-hidden="true">🎯</span> ใกล้ฉัน
+      </button>
+      <span class="mapbar__count" id="map-count">กำลังโหลด…</span>
+      <div class="mapbar__spacer"></div>
+      <div class="mapbar__toggle" role="group" aria-label="สลับมุมมอง">
+        <button type="button" data-view="map" class="is-on">🗺️ แผนที่</button>
+        <button type="button" data-view="list">📋 ลิสต์</button>
+      </div>
+    </div>
+    <div class="mapbar__cats" id="cat-scroll">
+      <span class="mapbar__loading">กำลังโหลดหมวดงาน…</span>
+    </div>
+  </div>
+
+  <!-- แผนที่ / ลิสต์ -->
+  <div class="mapwrap">
+    <div id="map" class="mapwrap__map"></div>
+
+    <div id="list-view" class="mapwrap__list" hidden>
+      <div class="loading-block"><div class="spinner"></div></div>
     </div>
 
-    <section class="fav-section" id="fav-section" hidden>
-      <div class="fav-section__head">
-        <h3 class="fav-section__title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true" style="color: var(--warning);">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          ช่างของคุณ
-        </h3>
+    <div class="map-empty" id="map-empty" hidden>
+      <div class="map-empty__card">
+        <div style="font-size:38px">🔍</div>
+        <p class="map-empty__title">ยังไม่มีช่างว่างในพื้นที่นี้</p>
+        <p class="map-empty__sub">ลองซูมออก เลื่อนไปพื้นที่อื่น หรือเอาตัวกรองหมวดงานออก</p>
       </div>
-      <div class="fav-section__scroller" id="fav-scroller">
-        <div class="loading-block"><div class="spinner"></div></div>
-      </div>
-    </section>
+    </div>
   </div>
+
+  <p class="map-foot">
+    💡 โชว์เฉพาะช่างที่กำลังว่าง — ช่างที่รับงานอยู่จะหายจากแผนที่อัตโนมัติ
+  </p>
+
   <%- include('partials/bottom-nav', { activeTab: 'home' }) %>
 </div>
+<script src="/static/js/map.js?v=<%= assetV %>"></script>
 <%- include('partials/foot', { pageScript: 'home' }) %>

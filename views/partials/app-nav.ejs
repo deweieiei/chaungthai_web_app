@@ -1,0 +1,40 @@
+<%
+  // แถบเมนูบนสำหรับจอ ≥1024px (มือถือใช้ bottom-nav เหมือนเดิม)
+  // locals: activeTab — 'home' | 'search' | 'jobs' | 'chat' | 'profile'
+  const tab = typeof activeTab !== 'undefined' ? activeTab : null;
+  const cls = (name) => 'app-nav__link' + (name === tab ? ' is-active' : '');
+%>
+<nav class="app-nav" aria-label="เมนูหลัก (จอใหญ่)">
+  <div class="app-nav__bar">
+    <a href="/home" class="app-nav__brand">
+      <img src="/static/images/logo-96.png" alt="" width="34" height="34">
+      ช่างไทย
+    </a>
+
+    <a href="/home" class="<%= cls('home') %>">🗺️ แผนที่</a>
+    <a href="/search-workers" class="<%= cls('search') %>">🔍 หาช่าง</a>
+    <a href="/jobs" class="<%= cls('jobs') %>">💼 งาน</a>
+    <a href="/chat" class="<%= cls('chat') %>">💬 แชต</a>
+
+    <span class="app-nav__spacer"></span>
+
+    <a href="/profile" class="app-nav__me">
+      <span id="app-nav-avatar"></span>
+      <span id="app-nav-name">โปรไฟล์</span>
+    </a>
+  </div>
+</nav>
+
+<script>
+  // เติมชื่อ + รูปจาก storage (ไม่ต้องรอ API)
+  // รอ DOMContentLoaded เพราะ auth.js/ui.js โหลดท้าย body
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!window.Auth) return;
+    var u = Auth.getUser();
+    if (!u) return;
+    var nameEl = document.getElementById('app-nav-name');
+    if (nameEl) nameEl.textContent = u.user_name || 'โปรไฟล์';
+    var avEl = document.getElementById('app-nav-avatar');
+    if (avEl && window.UI) avEl.innerHTML = UI.avatar(u, 'sm');
+  });
+</script>
