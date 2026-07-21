@@ -1,0 +1,129 @@
+<%- include('../partials/site-head') %>
+<%- include('../partials/site-header', { activeNav: 'home' }) %>
+
+<main class="wrap">
+
+  <!-- ======================= HERO ======================= -->
+  <section class="hero">
+    <h1>หาคนเก่งใกล้ตัว<br>จ้างงานง่าย เห็นบนแผนที่</h1>
+    <p>
+      แพลตฟอร์มจับคู่คนมีฝีมือกับคนที่ต้องการจ้าง — ช่าง ไอที ดีไซน์ สอนพิเศษ ดูแลคน
+      และอีกกว่า 180 บริการ ในราคาที่จ่ายไหว
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-ghost btn-lg" href="/home">🔍 หาช่างใกล้ฉัน</a>
+      <a class="btn btn-primary btn-lg" href="/register">🛠️ สมัครเป็นช่าง</a>
+    </div>
+  </section>
+
+  <!-- ==================== ทำไมต้องช่างไทย ==================== -->
+  <h2 class="section-title">ทำไมต้องช่างไทย</h2>
+  <p class="section-sub">3 อย่างที่ทำให้ต่างจากเว็บหางานทั่วไป</p>
+  <div class="cards">
+    <div class="card">
+      <div class="ico">🗺️</div>
+      <h3>เห็นเป็นแผนที่</h3>
+      <p>เปิดมาเห็นคนเก่งรอบตัวทันที รู้เลยว่าใครอยู่ใกล้ — ใกล้ = มาเร็ว ค่าเดินทางถูก</p>
+    </div>
+    <div class="card">
+      <div class="ico">🪪</div>
+      <h3>ยืนยันตัวตนจริง</h3>
+      <p>มีคนตรวจเอกสารจริง ไม่ใช่กดปุ่มผ่านเอง เชื่อใจได้ก่อนจ้าง</p>
+    </div>
+    <div class="card">
+      <div class="ico">⭐</div>
+      <h3>ช่างที่ว่างเท่านั้น</h3>
+      <p>ช่างที่กำลังรับงานอยู่จะหายจากแผนที่อัตโนมัติ ทักไปแล้วได้คนที่ว่างจริง</p>
+    </div>
+  </div>
+
+  <!-- ==================== หมวดงานยอดนิยม ==================== -->
+  <h2 class="section-title">หมวดงานยอดนิยม</h2>
+  <p class="section-sub" id="cat-sub">ครอบคลุม 15 หมวด 189 บริการ</p>
+  <div class="chips" id="cat-chips">
+    <span class="chips-loading">กำลังโหลดหมวดงาน…</span>
+  </div>
+
+  <!-- ==================== 3 ขั้นตอน ==================== -->
+  <h2 class="section-title">ใช้งานง่ายใน 3 ขั้น</h2>
+  <p class="section-sub">ไม่ต้องโทรหาใคร ไม่ต้องต่อรองผ่านคนกลาง</p>
+  <div class="steps">
+    <div class="step">
+      <div class="n">1</div>
+      <h4>ค้นหาบนแผนที่</h4>
+      <p>เลือกหมวดงาน แล้วดูคนที่ว่างอยู่ใกล้ตัว พร้อมความสามารถของแต่ละคน</p>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <h4>แชท &amp; จ้าง</h4>
+      <p>คุยตกลงรายละเอียดและราคาในเว็บ พอใจแล้วค่อยกดจ้าง</p>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <h4>จบงาน &amp; ให้ดาว</h4>
+      <p>ทำงานเสร็จ กดปิดงาน แล้วให้คะแนนกัน จบสวยทั้งคู่</p>
+    </div>
+  </div>
+
+  <!-- ==================== CTA ปิดท้าย ==================== -->
+  <section class="cta-band">
+    <h2>พร้อมเริ่มแล้วใช่ไหม</h2>
+    <p>สมัครฟรี ใช้ได้ทั้งฝั่งหาช่างและฝั่งรับงาน — บัญชีเดียวใช้ได้ทั้งสองฝั่ง</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary btn-lg" href="/register">สมัครสมาชิกฟรี</a>
+      <a class="btn btn-outline btn-lg" href="/how-it-works">ดูวิธีใช้งาน</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ดึงหมวดงานจริงจาก API มาโชว์เป็นชิป — ถ้า API ล่มก็ใช้ค่าสำรอง
+  (function () {
+    var ICONS = {
+      'งานไฟฟ้า-อิเล็กทรอนิกส์': '💡',
+      'งานประปา-สุขาภิบาล': '🚿',
+      'งานก่อสร้าง-โครงสร้าง': '🧱',
+      'งานตกแต่ง-ต่อเติม': '🪟',
+      'งานซ่อมแซมเฉพาะทาง': '❄️',
+      'งานทำความสะอาด': '🧹',
+      'งานสวน-ภูมิทัศน์': '🌿',
+      'งานคอมพิวเตอร์': '💻',
+      'งานมือถือ-อุปกรณ์พกพา': '📱',
+      'งานพัฒนาดิจิทัล': '⚙️',
+      'งานออกแบบ-สร้างสรรค์': '🎨',
+      'งานเขียน-ภาษา-สอน': '📚',
+      'งานที่ปรึกษา-ธุรกิจ': '📊',
+      'บริการดูแล-สุขภาพ-ความงาม': '💆',
+      'ขนส่ง-อาหาร-งานทั่วไป': '🚚'
+    };
+
+    var box = document.getElementById('cat-chips');
+    var sub = document.getElementById('cat-sub');
+
+    fetch('/api/skills')
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (data) {
+        var cats = data.categories || [];
+        if (!cats.length) throw new Error('ไม่มีหมวด');
+
+        sub.textContent = 'ครอบคลุม ' + data.total_categories + ' หมวด ' +
+                          data.total_skills + ' บริการ ทั่วประเทศ';
+
+        box.innerHTML = '';
+        cats.forEach(function (c) {
+          var name = c.skill_category_name_th;
+          var a = document.createElement('a');
+          a.className = 'chip';
+          a.href = '/home?category=' + c.skill_category_id;
+          a.textContent = (ICONS[name] || '🛠️') + ' ' + name;
+          box.appendChild(a);
+        });
+      })
+      .catch(function () {
+        box.innerHTML = '<span class="chips-loading">ดูหมวดงานทั้งหมดได้หลังเข้าสู่ระบบ</span>';
+      });
+  })();
+</script>
+
+<%- include('../partials/site-footer') %>

@@ -2,14 +2,17 @@
 //
 // ใช้:
 //   pm2 start ecosystem.config.js
-//   pm2 reload chaungthai-web
-//   pm2 logs chaungthai-web
+//   pm2 reload chaungthai-web-8086
+//   pm2 logs chaungthai-web-8086
 //   pm2 save
+//
+// ชื่อ process = <ชื่อโปรเจกต์>-<port> ให้เหมือนโปรเจกต์อื่นบนเครื่องนี้
+// (timecarehub-8091, chaungthai-api-3000)
 
 module.exports = {
   apps: [
     {
-      name: 'chaungthai-web',
+      name: 'chaungthai-web-8086',
       script: 'server.js',
       cwd: __dirname,
       instances: 1,

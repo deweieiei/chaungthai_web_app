@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#970000">
+  <title><%= title %> · ช่างไทย</title>
+  <meta name="description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'ช่างไทย — แพลตฟอร์มหาช่างและคนมีฝีมือใกล้ตัวบนแผนที่ ครอบคลุม 15 หมวด 189 บริการ ยืนยันตัวตนจริง รีวิวจากงานจริง' %>">
+
+  <!-- SEO / แชร์ลิงก์ -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ช่างไทย">
+  <meta property="og:title" content="<%= title %> · ช่างไทย">
+  <meta property="og:description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'หาคนเก่งใกล้ตัว จ้างงานง่าย เห็นบนแผนที่' %>">
+  <meta property="og:image" content="/static/images/logo.png">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="canonical" href="<%= typeof canonical !== 'undefined' ? canonical : '/' %>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800;900&display=swap">
+
+  <link rel="stylesheet" href="/static/css/site.css?v=<%= assetV %>">
+
+  <link rel="icon" type="image/png" sizes="48x48" href="/static/images/logo-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/static/images/logo-96.png">
+  <link rel="apple-touch-icon" href="/static/images/logo.png">
+</head>
+<body>

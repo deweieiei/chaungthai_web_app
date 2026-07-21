@@ -1,0 +1,46 @@
+<%
+  // locals: activeNav — 'home' | 'how' | 'about' | null
+  const nav = typeof activeNav !== 'undefined' ? activeNav : null;
+  const on = (n) => (n === nav ? ' class="is-active"' : '');
+%>
+<header class="site-header">
+  <div class="wrap site-bar">
+    <a href="/" class="brand">
+      <img src="/static/images/logo-96.png" alt="โลโก้ช่างไทย" width="38" height="38">
+      ช่างไทย
+    </a>
+
+    <nav class="site-nav" aria-label="เมนูหลัก">
+      <span class="nav-links">
+        <a href="/"<%- on('home') %>>หน้าแรก</a>
+        <a href="/how-it-works"<%- on('how') %>>วิธีใช้งาน</a>
+        <a href="/about"<%- on('about') %>>เกี่ยวกับเรา</a>
+      </span>
+
+      <!-- ปุ่มเข้าสู่ระบบมุมขวาบน — ล็อกอินแล้วสคริปต์จะสลับเป็น "เข้าใช้งาน" -->
+      <a href="/login" class="btn btn-outline" id="nav-login">เข้าสู่ระบบ</a>
+      <a href="/register" class="btn btn-primary" id="nav-register">สมัครสมาชิก</a>
+    </nav>
+  </div>
+</header>
+
+<script src="/static/js/auth.js?v=<%= assetV %>"></script>
+<script>
+  // ล็อกอินอยู่แล้ว → เปลี่ยนปุ่มขวาบนเป็นทางเข้าเว็บแอป
+  // (ไม่เด้งอัตโนมัติ — หน้าแรกต้องเป็นหน้าสาธารณะเสมอ)
+  (function () {
+    if (!window.Auth || !Auth.isLoggedIn()) return;
+    var login = document.getElementById('nav-login');
+    var reg = document.getElementById('nav-register');
+    if (login) {
+      login.textContent = 'ออกจากระบบ';
+      login.href = '#';
+      login.addEventListener('click', function (e) {
+        e.preventDefault();
+        Auth.clear();
+        location.reload();
+      });
+    }
+    if (reg) { reg.textContent = 'เข้าใช้งาน →'; reg.href = '/home'; }
+  })();
+</script>
