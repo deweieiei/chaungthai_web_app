@@ -6,6 +6,13 @@
   'use strict';
   if (!Auth.guard()) return;
 
+  // แผนที่หาช่าง = เครื่องมือของฝั่งผู้ว่าจ้าง
+  // บัญชีช่างมีหน้าหลักของตัวเองที่ /worker/home
+  if (Auth.isWorkerAccount()) {
+    location.replace('/worker/home');
+    return;
+  }
+
   const MAX_RADIUS_KM = 50;
 
   const countEl = document.getElementById('map-count');

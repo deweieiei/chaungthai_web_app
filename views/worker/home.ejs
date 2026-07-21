@@ -1,0 +1,9 @@
+<%- include('../partials/head') %>
+<div class="app-shell">
+  <%- include('../partials/app-nav', { activeTab: 'home' }) %>
+  <div class="page-content" id="worker-home">
+    <div class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>
+  </div>
+</div>
+<script src="/static/js/schedule-picker.js?v=<%= assetV %>"></script>
+<%- include('../partials/foot', { pageScript: 'worker-home' }) %>

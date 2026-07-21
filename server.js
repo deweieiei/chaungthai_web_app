@@ -200,6 +200,10 @@ app.get('/worker/crime-document', (req, res) =>
 app.get('/worker/schedule', (req, res) =>
   page(req, res, 'worker/schedule', { title: 'เวลาทำงาน' })
 );
+// หน้าหลักของบัญชีช่าง — ฝั่งช่างไม่มีแผนที่หาช่าง (นั่นเป็นของผู้ว่าจ้าง)
+app.get('/worker/home', (req, res) =>
+  page(req, res, 'worker/home', { title: 'หน้าหลัก', activeTab: 'home' })
+);
 app.get('/worker/portfolio', (req, res) =>
   page(req, res, 'worker/portfolio', { title: 'รีซูเม่ / ผลงาน' })
 );

@@ -317,6 +317,18 @@
   (async () => {
     try {
       const res = await Api.get('/workers/' + workerId);
+
+      // บัญชีช่างดูโปรไฟล์ช่างคนอื่นไม่ได้ — การหาช่าง/จ้างงานเป็นเรื่องของฝั่งผู้ว่าจ้าง
+      // (ดูของตัวเองได้ ไว้เช็คว่าลูกค้าเห็นเราเป็นยังไง)
+      if (Auth.isWorkerAccount()) {
+        const meUser = Auth.getUser();
+        const isSelf = meUser && res.user && meUser.user_id === res.user.user_id;
+        if (!isSelf) {
+          location.replace('/worker/home');
+          return;
+        }
+      }
+
       render(res);
       bindHireButton(res);
       bindFavoriteButton(res);
@@ -326,7 +338,7 @@
         <div class="empty-state__icon">${status === 404 ? '🚫' : '⚠'}</div>
         <div class="empty-state__title">${status === 404 ? 'ไม่พบช่าง' : 'โหลดข้อมูลไม่ได้'}</div>
         <p class="text-muted text-small">${UI.escapeHtml(err.message || '')}</p>
-        <a href="/search-workers" class="btn btn--outline btn--sm" style="margin-top: 12px;">กลับไปค้นหา</a>
+        <a href="/home" class="btn btn--outline btn--sm" style="margin-top: 12px;">กลับหน้าหลัก</a>
       </div>`;
     }
   })();

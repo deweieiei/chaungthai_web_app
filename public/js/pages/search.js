@@ -3,6 +3,12 @@
   'use strict';
   if (!Auth.guard()) return;
 
+  // หาช่าง = เครื่องมือของฝั่งผู้ว่าจ้าง
+  if (Auth.isWorkerAccount()) {
+    location.replace('/worker/home');
+    return;
+  }
+
   const elCategory = document.getElementById('category');
   const elSubcategory = document.getElementById('subcategory');
   const elSkill = document.getElementById('skill');

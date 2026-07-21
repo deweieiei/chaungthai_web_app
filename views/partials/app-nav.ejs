@@ -4,11 +4,16 @@
   const tab = typeof activeTab !== 'undefined' ? activeTab : null;
   const on = (name) => (name === tab ? ' is-active' : '');
 
-  //  ไม่มี "หาช่าง" แล้ว — หน้าแผนที่ทำหน้าที่หาช่างอยู่แล้ว (มีตัวกรองสกิลในตัว)
+  //  เมนูต่างกันตามฝั่งบัญชี — ซ่อน/แสดงด้วย CSS จาก data-account บน <html>
+  //  (ตั้งไว้ใน head.ejs ตั้งแต่ก่อนวาด body เมนูอีกฝั่งจะได้ไม่โผล่แวบ)
+  //
+  //  แผนที่ = เครื่องมือของผู้ว่าจ้างไว้หาช่าง → ฝั่งช่างไม่มี
+  //  ฝั่งช่างใช้ /worker/home เป็นหน้าหลักแทน
   const NAV = [
-    { key: 'home', href: '/home',  icon: '🗺️', label: 'แผนที่' },
-    { key: 'jobs', href: '/jobs',  icon: '💼', label: 'งาน' },
-    { key: 'chat', href: '/chat',  icon: '💬', label: 'แชต' },
+    { key: 'home',   href: '/home',        icon: '🗺️', label: 'แผนที่',   only: 'employer' },
+    { key: 'home',   href: '/worker/home', icon: '🏠', label: 'หน้าหลัก', only: 'worker' },
+    { key: 'jobs',   href: '/jobs',        icon: '💼', label: 'งาน' },
+    { key: 'chat',   href: '/chat',        icon: '💬', label: 'แชต' },
   ];
 %>
 <nav class="app-nav" aria-label="เมนูหลัก">
@@ -21,7 +26,8 @@
     <!-- เมนูเต็ม — จอกว้างเห็นเรียงกัน จอแคบซ่อนไว้ในปุ่ม ☰ -->
     <div class="app-nav__links" id="app-nav-links">
       <% NAV.forEach(function (item) { %>
-        <a href="<%= item.href %>" class="app-nav__link<%= on(item.key) %>">
+        <a href="<%= item.href %>" class="app-nav__link<%= on(item.key) %>"
+           <%= item.only ? 'data-only="' + item.only + '"' : '' %>>
           <span aria-hidden="true"><%= item.icon %></span> <%= item.label %>
         </a>
       <% }); %>
