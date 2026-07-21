@@ -23,11 +23,13 @@
       <span>ช่างไทย</span>
     </a>
 
-    <!-- เมนูเต็ม — จอกว้างเห็นเรียงกัน จอแคบซ่อนไว้ในปุ่ม ☰ -->
+    <!-- เมนูเต็ม — จอกว้างเห็นเรียงกัน จอแคบซ่อนไว้ในปุ่ม ☰
+         data-only ต้องพิมพ์ด้วยแท็ก EJS แบบ raw (ขีดกลาง) ไม่ใช่แบบ escape (เท่ากับ)
+         ไม่งั้นเครื่องหมายคำพูดกลายเป็น &#34; แล้ว attribute เพี้ยน -->
     <div class="app-nav__links" id="app-nav-links">
       <% NAV.forEach(function (item) { %>
         <a href="<%= item.href %>" class="app-nav__link<%= on(item.key) %>"
-           <%= item.only ? 'data-only="' + item.only + '"' : '' %>>
+           <%- item.only ? 'data-only="' + item.only + '"' : '' %>>
           <span aria-hidden="true"><%= item.icon %></span> <%= item.label %>
         </a>
       <% }); %>
