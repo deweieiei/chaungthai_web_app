@@ -156,36 +156,126 @@
 }
 .mapbar__toggle button.is-on { background: var(--primary); color: #fff; }
 
-/* ชิปหมวดงาน — เลื่อนแนวนอน */
-.mapbar__cats {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 3px;
-  scrollbar-width: thin;
+/* ตัวเลือกรัศมี */
+.mapbar__radius {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
-.mapbar__cats::-webkit-scrollbar { height: 5px; }
-.mapbar__cats::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 3px; }
+.mapbar__radius select {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #fff;
+  cursor: pointer;
+}
 
-.catbtn {
+/* แถวปุ่มกรองความสามารถ */
+.mapbar__row--filter { margin-bottom: 0; }
+
+.filterbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   border: 1px solid var(--border-strong);
   background: #fff;
   color: var(--text);
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 7px 16px;
   font-family: inherit;
   font-size: 13.5px;
-  font-weight: 600;
-  white-space: nowrap;
+  font-weight: 700;
   cursor: pointer;
-  flex: none;
   transition: 0.13s;
 }
-.catbtn:hover { border-color: var(--primary); color: var(--primary); }
-.catbtn.is-on {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
+.filterbtn:hover { border-color: var(--primary); color: var(--primary); }
+.filterbtn--clear {
+  border-color: transparent;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+.filterbtn--clear:hover { color: var(--danger); }
+
+/* ============================================================
+   แผงเลือกความสามารถ (ใช้ SkillTree ชุดเดียวกับหน้าสมัครเป็นช่าง)
+============================================================ */
+.filterpanel {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.filterpanel__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+.filterpanel__sheet {
+  position: relative;
+  background: var(--surface);
+  width: 100%;
+  max-width: 560px;
+  max-height: 88dvh;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xl);
+  animation: filterpanel-up 0.2s ease-out;
+}
+@keyframes filterpanel-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.filterpanel__head {
+  display: flex;
+  align-items: center;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.filterpanel__head h3 { font-size: 17px; font-weight: 800; margin: 0; }
+.filterpanel__x {
+  margin-left: auto;
+  border: 0;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  cursor: pointer;
+}
+.filterpanel__body { flex: 1; overflow-y: auto; min-height: 0; }
+.filterpanel__foot {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+}
+.filterpanel__foot .btn { flex: 1; }
+
+@media (min-width: 720px) {
+  .filterpanel { align-items: center; }
+  .filterpanel__sheet { border-radius: var(--radius-xl); max-height: 80dvh; }
+}
+
+/* จุดบอกตำแหน่งของเราบนแผนที่ */
+.ct-me {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28);
 }
 
 /* พื้นที่แผนที่ */

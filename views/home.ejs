@@ -2,21 +2,38 @@
 <div class="app-shell app-shell--with-nav app-shell--map">
   <%- include('partials/app-nav', { activeTab: 'home' }) %>
 
-  <!-- แถบกรองลอยเหนือแผนที่ -->
+  <!-- แถบควบคุมเหนือแผนที่ -->
   <div class="mapbar">
     <div class="mapbar__row">
       <button type="button" class="mapbar__locate" id="btn-locate" title="ไปที่ตำแหน่งของฉัน">
         <span aria-hidden="true">🎯</span> ใกล้ฉัน
       </button>
+
+      <label class="mapbar__radius">
+        <span>รัศมี</span>
+        <select id="radius">
+          <option value="5">5 กม.</option>
+          <option value="10" selected>10 กม.</option>
+          <option value="20">20 กม.</option>
+          <option value="50">50 กม.</option>
+        </select>
+      </label>
+
       <span class="mapbar__count" id="map-count">กำลังโหลด…</span>
+
       <div class="mapbar__spacer"></div>
       <div class="mapbar__toggle" role="group" aria-label="สลับมุมมอง">
         <button type="button" data-view="map" class="is-on">🗺️ แผนที่</button>
         <button type="button" data-view="list">📋 ลิสต์</button>
       </div>
     </div>
-    <div class="mapbar__cats" id="cat-scroll">
-      <span class="mapbar__loading">กำลังโหลดหมวดงาน…</span>
+
+    <div class="mapbar__row mapbar__row--filter">
+      <button type="button" class="filterbtn" id="btn-filter">
+        <span aria-hidden="true">🔧</span>
+        <span id="filter-label">กรองความสามารถ</span>
+      </button>
+      <button type="button" class="filterbtn filterbtn--clear" id="btn-filter-clear" hidden>ล้างตัวกรอง</button>
     </div>
   </div>
 
@@ -31,17 +48,35 @@
     <div class="map-empty" id="map-empty" hidden>
       <div class="map-empty__card">
         <div style="font-size:38px">🔍</div>
-        <p class="map-empty__title">ยังไม่มีช่างว่างในพื้นที่นี้</p>
-        <p class="map-empty__sub">ลองซูมออก เลื่อนไปพื้นที่อื่น หรือเอาตัวกรองหมวดงานออก</p>
+        <p class="map-empty__title">ยังไม่มีช่างว่างแถวนี้</p>
+        <p class="map-empty__sub">ลองขยายรัศมี หรือเอาตัวกรองความสามารถออก</p>
       </div>
     </div>
   </div>
 
   <p class="map-foot">
-    💡 โชว์เฉพาะช่างที่กำลังว่าง — ช่างที่รับงานอยู่จะหายจากแผนที่อัตโนมัติ
+    💡 ดูได้ในรัศมีสูงสุด 50 กม. รอบตัวคุณ · โชว์เฉพาะช่างที่กำลังว่าง
   </p>
 
   <%- include('partials/bottom-nav', { activeTab: 'home' }) %>
 </div>
+
+<!-- แผงเลือกความสามารถ (ชุดเดียวกับหน้าสมัครเป็นช่าง) -->
+<div class="filterpanel" id="filter-panel" hidden>
+  <div class="filterpanel__backdrop" data-close></div>
+  <div class="filterpanel__sheet">
+    <div class="filterpanel__head">
+      <h3>เลือกความสามารถที่ต้องการ</h3>
+      <button type="button" class="filterpanel__x" data-close aria-label="ปิด">✕</button>
+    </div>
+    <div class="filterpanel__body" id="filter-mount"></div>
+    <div class="filterpanel__foot">
+      <button type="button" class="btn btn--outline" id="filter-reset">ล้างทั้งหมด</button>
+      <button type="button" class="btn btn--primary" id="filter-apply">ดูช่าง</button>
+    </div>
+  </div>
+</div>
+
 <script src="/static/js/map.js?v=<%= assetV %>"></script>
+<script src="/static/js/skill-tree.js?v=<%= assetV %>"></script>
 <%- include('partials/foot', { pageScript: 'home' }) %>

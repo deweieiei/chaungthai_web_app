@@ -1,26 +1,33 @@
-// /home — หน้าหลัก = แผนที่ช่างว่างรอบตัว
+// /home — แผนที่ช่างว่าง "รอบตัวเรา" (สูงสุด 50 กม.)
+//
+// ต่างจากรอบก่อน: ไม่โหลดตามกรอบแผนที่ที่เลื่อนไปแล้ว
+// เพราะพี่ดิวขอปิดระบบดูช่างทั้งประเทศ — ดูได้แค่รอบตัวเอง
 (function () {
   'use strict';
   if (!Auth.guard()) return;
 
+  const MAX_RADIUS_KM = 50;
+
   const countEl = document.getElementById('map-count');
-  const catScroll = document.getElementById('cat-scroll');
+  const radiusEl = document.getElementById('radius');
   const listView = document.getElementById('list-view');
   const emptyEl = document.getElementById('map-empty');
   const mapEl = document.getElementById('map');
+  const filterLabel = document.getElementById('filter-label');
+  const clearBtn = document.getElementById('btn-filter-clear');
 
   let map = null;
-  let categoryId = null;   // หมวดงานที่กรองอยู่ (null = ทุกหมวด)
+  let circle = null;
+  let meMarker = null;
+  let me = null;              // [lat, lng] ตำแหน่งของเรา
+  let skillIds = new Set();   // ตัวกรองความสามารถ (เลือกได้หลายอัน)
   let lastWorkers = [];
-  let loadSeq = 0;         // กันผลลัพธ์เก่ามาทับผลใหม่
+  let loadSeq = 0;
 
-  // เปิดมาจากลิงก์ /home?category=3 (หน้าแรกสาธารณะส่งมา)
-  const fromUrl = Number(new URLSearchParams(location.search).get('category'));
-  if (Number.isInteger(fromUrl) && fromUrl > 0) categoryId = fromUrl;
+  const radiusKm = () => Number(radiusEl.value);
 
   // ------------------------------------------------------------
-  //  จุดเริ่มต้นของแผนที่
-  //  1) พิกัดที่ผู้ใช้เคยบันทึกไว้ในโปรไฟล์  2) GPS  3) กรุงเทพ
+  //  ตำแหน่งของเรา: พิกัดที่บันทึกในโปรไฟล์ → GPS → กรุงเทพ
   // ------------------------------------------------------------
   async function initialCenter() {
     const u = Auth.getUser();
@@ -32,22 +39,24 @@
   }
 
   // ------------------------------------------------------------
-  //  โหลดช่างในกรอบที่เห็นอยู่
+  //  โหลดช่างรอบตัว
   // ------------------------------------------------------------
   async function loadWorkers() {
-    if (!map) return;
+    if (!me) return;
     const seq = ++loadSeq;
     countEl.textContent = 'กำลังโหลด…';
 
     try {
       const res = await Api.get('/workers/search', {
         query: {
-          bbox: CtMap.bboxOf(map),
-          skill_category_id: categoryId || undefined,
+          lat: me[0],
+          lng: me[1],
+          radius_km: radiusKm(),
+          skill_ids: skillIds.size ? Array.from(skillIds).join(',') : undefined,
           limit: 200,
         },
       });
-      if (seq !== loadSeq) return;  // มีการเลื่อนแผนที่ใหม่กว่านี้แล้ว
+      if (seq !== loadSeq) return;   // มีคำขอใหม่กว่าแล้ว
 
       lastWorkers = res.workers || [];
       CtMap.renderWorkers(map, lastWorkers);
@@ -55,9 +64,7 @@
 
       countEl.textContent = lastWorkers.length
         ? 'ช่างว่าง ' + lastWorkers.length + ' คน'
-        : 'ไม่พบช่างในพื้นที่นี้';
-      // โชว์กล่อง "ไม่พบช่าง" เฉพาะตอนดูแผนที่และไม่เจอใครจริง ๆ
-      // (มุมมองลิสต์มีข้อความว่างของตัวเองอยู่แล้ว)
+        : 'ไม่พบช่างในรัศมีนี้';
       emptyEl.hidden = lastWorkers.length > 0 || !listView.hidden;
     } catch (err) {
       if (seq !== loadSeq) return;
@@ -67,13 +74,47 @@
   }
 
   // ------------------------------------------------------------
+  //  วงรัศมี + หมุดตำแหน่งเรา
+  // ------------------------------------------------------------
+  function paintArea(fit) {
+    if (!map || !me) return;
+    const meters = radiusKm() * 1000;
+
+    if (!circle) {
+      circle = L.circle(me, {
+        radius: meters,
+        color: '#970000', weight: 1.5,
+        fillColor: '#970000', fillOpacity: 0.05,
+      }).addTo(map);
+    } else {
+      circle.setLatLng(me).setRadius(meters);
+    }
+
+    if (!meMarker) {
+      meMarker = L.marker(me, {
+        icon: L.divIcon({
+          className: '',
+          html: '<div class="ct-me"></div>',
+          iconSize: [18, 18], iconAnchor: [9, 9],
+        }),
+        interactive: false,
+      }).addTo(map);
+    } else {
+      meMarker.setLatLng(me);
+    }
+
+    // ให้วงรัศมีพอดีจอ จะได้เห็นขอบเขตที่ดูได้จริง
+    if (fit) map.fitBounds(circle.getBounds(), { padding: [24, 24] });
+  }
+
+  // ------------------------------------------------------------
   //  มุมมองลิสต์
   // ------------------------------------------------------------
   function renderList(workers) {
     if (!workers.length) {
       listView.innerHTML =
         '<p class="text-muted text-center" style="padding:var(--space-xl)">' +
-        'ไม่พบช่างในพื้นที่นี้ ลองซูมออกหรือเลื่อนแผนที่</p>';
+        'ไม่พบช่างในรัศมีนี้ ลองขยายรัศมีหรือเอาตัวกรองออก</p>';
       return;
     }
 
@@ -85,7 +126,7 @@
       const more = (w.skill_count || 0) > 3
         ? '<span class="chip chip--sm">+' + ((w.skill_count || 0) - 3) + '</span>' : '';
       const verified = w.is_identity_verified
-        ? '<span class="badge badge--success">✅ ยืนยันแล้ว</span>' : '';
+        ? '<span class="badge--success">✅ ยืนยันแล้ว</span>' : '';
 
       return (
         '<a class="worker-row" href="/worker/' + w.worker_id + '">' +
@@ -93,7 +134,8 @@
           '<div class="worker-row__body">' +
             '<div class="worker-row__name">' + UI.escapeHtml(fullName) + ' ' + verified + '</div>' +
             '<div class="worker-row__skills">' + skills + more + '</div>' +
-            '<div class="worker-row__meta">รับงานไปแล้ว ' + (w.worker_total_jobs || 0) + ' งาน</div>' +
+            '<div class="worker-row__meta">ห่าง ' + (w.distance_km ?? '-') + ' กม. · ' +
+              'รับงานไปแล้ว ' + (w.worker_total_jobs || 0) + ' งาน</div>' +
           '</div>' +
           '<span class="worker-row__go" aria-hidden="true">›</span>' +
         '</a>'
@@ -102,35 +144,61 @@
   }
 
   // ------------------------------------------------------------
-  //  ชิปหมวดงาน
+  //  แผงกรองความสามารถ — ใช้ SkillTree ตัวเดียวกับหน้าสมัครเป็นช่าง
   // ------------------------------------------------------------
-  async function loadCategories() {
-    try {
-      const data = await Api.get('/skills');
-      const cats = data.categories || [];
-      catScroll.innerHTML = '';
+  const panel = document.getElementById('filter-panel');
+  let picker = null;
+  let draft = new Set();      // ที่เลือกค้างไว้ ยังไม่กด "ดูช่าง"
 
-      cats.forEach(function (c) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'catbtn' + (categoryId === c.skill_category_id ? ' is-on' : '');
-        btn.dataset.cat = c.skill_category_id;
-        const icon = CtMap.CATEGORY_ICONS[c.skill_category_name_th] || '🛠️';
-        btn.textContent = icon + ' ' + c.skill_category_name_th.replace(/^งาน|^บริการ/, '');
-        btn.addEventListener('click', function () {
-          // กดซ้ำที่หมวดเดิม = ยกเลิกตัวกรอง
-          categoryId = categoryId === c.skill_category_id ? null : c.skill_category_id;
-          catScroll.querySelectorAll('.catbtn').forEach((b) => {
-            b.classList.toggle('is-on', Number(b.dataset.cat) === categoryId);
-          });
-          loadWorkers();
-        });
-        catScroll.appendChild(btn);
-      });
-    } catch (err) {
-      catScroll.innerHTML = '<span class="mapbar__loading">โหลดหมวดงานไม่สำเร็จ</span>';
+  function paintFilterLabel() {
+    if (skillIds.size === 0) {
+      filterLabel.textContent = 'กรองความสามารถ';
+      clearBtn.hidden = true;
+    } else {
+      filterLabel.textContent = 'กรองอยู่ ' + skillIds.size + ' อย่าง';
+      clearBtn.hidden = false;
     }
   }
+
+  async function openFilter() {
+    panel.hidden = false;
+    draft = new Set(skillIds);
+    if (!picker) {
+      picker = await SkillTree.mount('#filter-mount', {
+        selected: Array.from(draft),
+        max: 50,
+        onChange: (s) => { draft = s; },
+      });
+    } else {
+      picker.setSelected(draft);
+    }
+  }
+
+  function closeFilter() { panel.hidden = true; }
+
+  document.getElementById('btn-filter').addEventListener('click', openFilter);
+  panel.querySelectorAll('[data-close]').forEach((el) =>
+    el.addEventListener('click', closeFilter));
+
+  document.getElementById('filter-apply').addEventListener('click', function () {
+    skillIds = new Set(draft);
+    paintFilterLabel();
+    closeFilter();
+    loadWorkers();
+  });
+
+  document.getElementById('filter-reset').addEventListener('click', function () {
+    draft = new Set();
+    if (picker) picker.setSelected(draft);
+  });
+
+  clearBtn.addEventListener('click', function () {
+    skillIds = new Set();
+    draft = new Set();
+    if (picker) picker.setSelected(draft);
+    paintFilterLabel();
+    loadWorkers();
+  });
 
   // ------------------------------------------------------------
   //  สลับ แผนที่ ↔ ลิสต์
@@ -145,31 +213,37 @@
       listView.hidden = !wantList;
       emptyEl.hidden = wantList || lastWorkers.length > 0;
 
-      // Leaflet ต้องคำนวณขนาดใหม่หลังถูกซ่อนแล้วโชว์
       if (!wantList && map) setTimeout(() => map.invalidateSize(), 50);
     });
   });
 
   // ------------------------------------------------------------
-  //  ปุ่มใกล้ฉัน
+  //  เปลี่ยนรัศมี / ปุ่มใกล้ฉัน
   // ------------------------------------------------------------
+  radiusEl.addEventListener('change', function () {
+    if (radiusKm() > MAX_RADIUS_KM) radiusEl.value = String(MAX_RADIUS_KM);
+    paintArea(true);
+    loadWorkers();
+  });
+
   document.getElementById('btn-locate').addEventListener('click', async function () {
-    const btn = this;
-    btn.disabled = true;
+    this.disabled = true;
     const pos = await CtMap.locate();
-    btn.disabled = false;
+    this.disabled = false;
     if (!pos) {
       UI.toast('ขอตำแหน่งไม่สำเร็จ — เปิดสิทธิ์ตำแหน่งในเบราว์เซอร์ก่อน', 'warning');
       return;
     }
-    map.setView(pos, 14);   // moveend จะไปเรียก loadWorkers เอง
+    me = pos;
+    paintArea(true);
+    loadWorkers();
   });
 
   // ------------------------------------------------------------
   //  เริ่ม
   // ------------------------------------------------------------
   (async function start() {
-    loadCategories();
+    paintFilterLabel();
 
     try {
       await CtMap.ensureLeaflet();
@@ -180,14 +254,11 @@
       return;
     }
 
-    const center = await initialCenter();
-    map = CtMap.create('#map', { center: center, zoom: 13 });
+    me = await initialCenter();
+    map = CtMap.create('#map', { center: me, zoom: 13 });
+    map.invalidateSize();     // กัน Leaflet จำขนาดผิดตอน layout ยังไม่นิ่ง
 
-    // แผนที่ถูกสร้างในกล่อง flex — ถ้า layout ยังไม่นิ่ง Leaflet จะจำขนาดผิด
-    // แล้ว getBounds() คืนกรอบเล็กจิ๋วจนหาช่างไม่เจอ · สั่งวัดขนาดใหม่ก่อนโหลดรอบแรก
-    map.invalidateSize();
-
-    CtMap.onViewChange(map, loadWorkers);
+    paintArea(true);
     loadWorkers();
   })();
 })();

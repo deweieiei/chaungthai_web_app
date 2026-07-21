@@ -64,7 +64,10 @@
   }
 
   // ---- tab bar ----
+  //  แท็บ "ช่าง" มีเฉพาะบัญชีฝั่งช่างเท่านั้น
+  //  บัญชีผู้ว่าจ้างไม่มีอะไรเกี่ยวกับช่างเลย — มีแท็บเดียวก็ไม่ต้องโชว์แถบแท็บ
   function renderTabBar() {
+    if (accountTypeOf(currentUser) !== 'worker') return '';
     return `
       <div class="tab-bar" role="tablist" style="margin-top: var(--space-lg);">
         <button type="button" class="tab-bar__item ${activeTab === 'account' ? 'tab-bar__item--active' : ''}" data-tab="account" role="tab" aria-selected="${activeTab === 'account'}">
@@ -343,61 +346,6 @@
       </p>`;
   }
 
-  // ---- แท็บช่าง เมื่อกำลังอยู่ในบัญชี "ผู้ว่าจ้าง" ----
-  //  ฝั่งช่างเป็นคนละบัญชี → เสนอสร้างบัญชีช่างด้วยอีเมลเดิม ไม่ต้องกรอกซ้ำ
-  function renderCounterpartTab(u) {
-    return `
-      <div class="card card--elevated" style="margin-top: var(--space-lg); text-align: center;">
-        <div style="font-size: 46px;">🛠️</div>
-        <h3 style="font-weight: 800; margin: var(--space-sm) 0 4px;">อยากรับงานด้วยใช่ไหม</h3>
-        <p class="text-small text-muted">
-          ฝั่งช่างเป็น <strong>คนละบัญชี</strong> กับฝั่งผู้ว่าจ้าง เพื่อให้งาน แชท และรีวิวไม่ปนกัน<br>
-          แต่ใช้ <strong>อีเมลและรหัสผ่านเดิม</strong> ได้เลย
-        </p>
-        <div class="card-list" style="margin-top: var(--space-md); text-align: left;">
-          ${infoRow({ icon: '📧', label: 'อีเมลที่จะใช้', value: UI.escapeHtml(u.user_email || '-') })}
-          ${infoRow({ icon: '🔑', label: 'รหัสผ่าน', value: 'เหมือนบัญชีนี้' })}
-          ${infoRow({ icon: '👤', label: 'ชื่อ/เบอร์/รูป', value: 'ก็อปไปให้ครั้งแรก แก้ทีหลังได้' })}
-        </div>
-        <button type="button" class="btn btn--primary btn--block btn--lg" id="create-worker-account-btn"
-                style="margin-top: var(--space-md);">
-          สร้างบัญชีช่างด้วยอีเมลนี้
-        </button>
-        <p class="text-tiny text-faint" style="margin-top: var(--space-sm);">
-          สร้างเสร็จจะสลับเข้าบัญชีช่างให้ทันที · กลับมาฝั่งผู้ว่าจ้างได้ที่หน้าเข้าสู่ระบบ
-        </p>
-      </div>`;
-  }
-
-  async function createWorkerAccount() {
-    const btn = document.getElementById('create-worker-account-btn');
-    const ok = await UI.confirm({
-      title: 'สร้างบัญชีช่าง?',
-      message: 'จะสร้างบัญชีช่างด้วยอีเมลเดิม แล้วสลับเข้าบัญชีช่างให้ทันที',
-      confirmLabel: 'สร้างเลย',
-    });
-    if (!ok) return;
-
-    UI.setBtnLoading(btn, true);
-    try {
-      const res = await Api.post('/auth/create-counterpart');
-      Auth.clear();
-      Auth.setToken(res.token);
-      Auth.setUser(res.user);
-      UI.toast(res.message, 'success');
-      setTimeout(() => location.replace('/become-worker'), 900);
-    } catch (err) {
-      if (err.status === 409) {
-        UI.toast(err.message, 'warning');
-        setTimeout(() => location.replace('/login?side=worker'), 1500);
-        return;
-      }
-      UI.toast(err.message || 'สร้างบัญชีไม่สำเร็จ', 'danger');
-    } finally {
-      UI.setBtnLoading(btn, false);
-    }
-  }
-
   // ---- main render ----
   function render() {
     const u = currentUser;
@@ -405,15 +353,15 @@
     const isWorkerAccount = accountTypeOf(u) === 'worker';
     const isWorker = isWorkerAccount && u.user_role === 'worker';
 
+    // บัญชีผู้ว่าจ้างไม่มีส่วนของช่างเลย — บังคับกลับแท็บบัญชีเสมอ
+    if (!isWorkerAccount) activeTab = 'account';
+
     let body = '';
     if (activeTab === 'account') {
       body = renderAccountTab(u);
     } else {
-      // แท็บช่าง
-      if (!isWorkerAccount) {
-        // อยู่ฝั่งผู้ว่าจ้าง → ชวนสร้างบัญชีช่าง (คนละบัญชี)
-        body = renderCounterpartTab(u);
-      } else if (!isWorker) {
+      // แท็บช่าง (มีเฉพาะบัญชีฝั่งช่าง)
+      if (!isWorker) {
         // บัญชีช่างแล้ว แต่ยังไม่ได้ตั้งโปรไฟล์ช่าง (เลือกสกิล + ปักหมุด)
         body = renderWorkerTermsTab();
       } else if (!currentWorkerLoaded) {
@@ -460,25 +408,17 @@
       if (logoutBtn) logoutBtn.addEventListener('click', confirmLogout);
       const closeBtn = document.getElementById('close-account-btn');
       if (closeBtn) closeBtn.addEventListener('click', confirmClose);
-    } else if (activeTab === 'worker') {
-      // อยู่ฝั่งผู้ว่าจ้าง → ปุ่มสร้างบัญชีช่าง
-      const createBtn = document.getElementById('create-worker-account-btn');
-      if (createBtn) {
-        createBtn.addEventListener('click', createWorkerAccount);
-        return;
-      }
-      // บัญชีช่างแล้ว แต่ยังไม่ตั้งโปรไฟล์
-      if (currentUser.user_role !== 'worker') {
-        const agree = document.getElementById('agree-worker-terms');
-        const cont = document.getElementById('continue-worker-btn');
-        if (agree && cont) {
-          agree.addEventListener('change', () => {
-            cont.disabled = !agree.checked;
-          });
-          cont.addEventListener('click', () => {
-            if (agree.checked) location.href = '/become-worker';
-          });
-        }
+    } else if (activeTab === 'worker' && currentUser.user_role !== 'worker') {
+      // บัญชีช่างแล้ว แต่ยังไม่ตั้งโปรไฟล์ช่าง
+      const agree = document.getElementById('agree-worker-terms');
+      const cont = document.getElementById('continue-worker-btn');
+      if (agree && cont) {
+        agree.addEventListener('change', () => {
+          cont.disabled = !agree.checked;
+        });
+        cont.addEventListener('click', () => {
+          if (agree.checked) location.href = '/become-worker';
+        });
       }
     }
   }
