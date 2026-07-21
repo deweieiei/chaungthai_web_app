@@ -197,6 +197,9 @@ app.get('/worker/edit-skills', (req, res) =>
 app.get('/worker/crime-document', (req, res) =>
   page(req, res, 'worker/crime-document', { title: 'ประวัติอาชญากรรม' })
 );
+app.get('/worker/schedule', (req, res) =>
+  page(req, res, 'worker/schedule', { title: 'เวลาทำงาน' })
+);
 app.get('/worker/portfolio', (req, res) =>
   page(req, res, 'worker/portfolio', { title: 'รีซูเม่ / ผลงาน' })
 );

@@ -207,6 +207,15 @@
       ${phoneSection}
 
       <div class="card">
+        <div class="card__title">🕘 เวลาที่รับงาน</div>
+        <div>${UI.escapeHtml(
+          window.SchedulePicker
+            ? SchedulePicker.describe(d.schedule)
+            : 'ไม่ได้ระบุเวลา'
+        )}</div>
+      </div>
+
+      <div class="card">
         <div class="card__title">📍 พื้นที่รับงาน ${availText}</div>
         <div>${UI.escapeHtml(areaText)}</div>
         ${hasPin ? '<div class="pinbox" style="margin-top:10px"><div class="pinbox__map" id="worker-map" style="height:200px"></div></div>' : ''}

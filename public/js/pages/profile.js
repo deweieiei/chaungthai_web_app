@@ -336,6 +336,7 @@
       <h3 class="section-title">จัดการช่าง</h3>
       <div class="card-list">
         ${actionRow({ icon: '🛠', label: 'แก้ไขสกิลของฉัน', href: '/worker/edit-skills' })}
+        ${actionRow({ icon: '🕘', label: 'เวลาที่รับงานได้', href: '/worker/schedule' })}
         ${actionRow({ icon: '🪪', label: 'อัพโหลดประวัติอาชญากรรม', href: '/worker/crime-document' })}
         ${actionRow({ icon: '🖼', label: 'อัพโหลดรีซูเม่ / ผลงาน', href: '/worker/portfolio' })}
         ${actionRow({ icon: '👁', label: 'ดูโปรไฟล์สาธารณะ', href: w ? '/worker/' + w.worker_id : '#' })}

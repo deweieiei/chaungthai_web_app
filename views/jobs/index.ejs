@@ -7,11 +7,9 @@
       <p class="text-small text-muted" style="margin: 0;">งานทั้งหมดของคุณ</p>
     </div>
 
-    <div class="tab-segment" role="tablist" id="job-tabs">
-      <button class="tab-segment__btn tab-segment__btn--active" data-tab="worker" role="tab">ฉันรับ</button>
-      <button class="tab-segment__btn" data-tab="employer" role="tab">ฉันจ้าง</button>
-      <button class="tab-segment__btn" data-tab="history" role="tab">ประวัติ</button>
-    </div>
+    <!-- แท็บถูกสร้างจาก jobs.js ตามฝั่งบัญชี
+         ผู้ว่าจ้างเห็น "ฉันจ้าง" · ช่างเห็น "ฉันรับ" -->
+    <div class="tab-segment" role="tablist" id="job-tabs"></div>
 
     <div id="job-list" style="margin-top: var(--space-md);">
       <div class="loading-block"><div class="spinner"></div><div>กำลังโหลด...</div></div>

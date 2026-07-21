@@ -92,6 +92,15 @@
     submitBtn.textContent = `สมัครเป็นช่าง (${selectedSet.size} สกิล)`;
   }
 
+  // ------------------------------------------------------------
+  //  เวลาทำงานประจำสัปดาห์ (ไม่บังคับ)
+  // ------------------------------------------------------------
+  let schedule = [];
+  const schedPicker = SchedulePicker.mount('#schedule-mount', {
+    value: [],
+    onChange: (list) => { schedule = list; },
+  });
+
   let picker;
   SkillTree.mount('#skill-mount', {
     selected: [],
@@ -123,6 +132,16 @@
       const u = Auth.getUser();
       if (u) Auth.setUser({ ...u, user_role: 'worker' });
       if (res.worker_id) Auth.setWorkerId(res.worker_id);
+
+      // เวลาทำงานต้องบันทึกหลังมี worker_id แล้ว (คนละ endpoint)
+      // ล้มเหลวก็ไม่ถือว่าสมัครไม่สำเร็จ — ไปตั้งใหม่ในโปรไฟล์ได้
+      if (res.worker_id && schedule.length > 0) {
+        try {
+          await Api.put('/workers/' + res.worker_id + '/schedule', { schedule });
+        } catch (e) {
+          UI.toast('สมัครสำเร็จ แต่บันทึกเวลาทำงานไม่ได้ — ตั้งใหม่ได้ในโปรไฟล์', 'warning', 4000);
+        }
+      }
 
       const ok = await new Promise((resolve) => {
         const m = document.createElement('div');

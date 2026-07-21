@@ -4,11 +4,11 @@
   const tab = typeof activeTab !== 'undefined' ? activeTab : null;
   const on = (name) => (name === tab ? ' is-active' : '');
 
+  //  ไม่มี "หาช่าง" แล้ว — หน้าแผนที่ทำหน้าที่หาช่างอยู่แล้ว (มีตัวกรองสกิลในตัว)
   const NAV = [
-    { key: 'home',    href: '/home',           icon: '🗺️', label: 'แผนที่' },
-    { key: 'search',  href: '/search-workers', icon: '🔍', label: 'หาช่าง' },
-    { key: 'jobs',    href: '/jobs',           icon: '💼', label: 'งาน' },
-    { key: 'chat',    href: '/chat',           icon: '💬', label: 'แชต' },
+    { key: 'home', href: '/home',  icon: '🗺️', label: 'แผนที่' },
+    { key: 'jobs', href: '/jobs',  icon: '💼', label: 'งาน' },
+    { key: 'chat', href: '/chat',  icon: '💬', label: 'แชต' },
   ];
 %>
 <nav class="app-nav" aria-label="เมนูหลัก">

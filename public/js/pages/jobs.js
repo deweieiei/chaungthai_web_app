@@ -1,10 +1,15 @@
-// /jobs — list งาน (3 tabs: ฉันรับ / ฉันจ้าง / ประวัติ)
+// /jobs — list งาน
+//
+// บัญชีช่างกับผู้ว่าจ้างแยกกันสมบูรณ์แล้ว (migration 12)
+// บัญชีผู้ว่าจ้างจึงไม่มีทางมีงานใน "ฉันรับ" และบัญชีช่างไม่มีทางมีงานใน "ฉันจ้าง"
+// → โชว์เฉพาะแท็บที่ตรงกับฝั่งบัญชี ไม่ต้องมีแท็บที่ว่างเปล่าตลอดกาล
 (function () {
   'use strict';
   if (!Auth.guard()) return;
 
   const me = Auth.getUser();
   const meId = me && me.user_id;
+  const isWorkerAccount = Auth.isWorkerAccount();
 
   const ACTIVE_STATUS = 'pending,not_started,in_progress';
   const HISTORY_STATUS = 'completed,declined,cancelled';
@@ -15,10 +20,21 @@
     history:  { role: null,       status: HISTORY_STATUS },
   };
 
-  const tabs = document.querySelectorAll('#job-tabs .tab-segment__btn');
   const elList = document.getElementById('job-list');
-  let currentTab = 'worker';
+  const tabBar = document.getElementById('job-tabs');
 
+  const TABS = isWorkerAccount
+    ? [{ key: 'worker', label: 'งานที่ฉันรับ' }, { key: 'history', label: 'ประวัติ' }]
+    : [{ key: 'employer', label: 'งานที่ฉันจ้าง' }, { key: 'history', label: 'ประวัติ' }];
+
+  let currentTab = TABS[0].key;
+
+  tabBar.innerHTML = TABS.map((t, i) =>
+    '<button class="tab-segment__btn' + (i === 0 ? ' tab-segment__btn--active' : '') +
+    '" data-tab="' + t.key + '" role="tab">' + t.label + '</button>'
+  ).join('');
+
+  const tabs = tabBar.querySelectorAll('.tab-segment__btn');
   tabs.forEach((btn) => {
     btn.addEventListener('click', () => {
       tabs.forEach((b) => b.classList.remove('tab-segment__btn--active'));
