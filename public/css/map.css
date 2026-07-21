@@ -370,6 +370,73 @@
 }
 
 /* ============================================================
+   ปุ่มเลือกฝั่ง (ช่าง / ผู้ว่าจ้าง) ในหน้า login + register
+   บัญชี 2 ฝั่งแยกกันสมบูรณ์ ต้องเลือกก่อนกรอกอีเมล
+============================================================ */
+.sidebtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: 0.15s;
+}
+.sidebtn:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+.sidebtn__ico { font-size: 28px; flex: none; }
+.sidebtn__body { flex: 1; min-width: 0; }
+.sidebtn__title {
+  display: block;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text);
+}
+.sidebtn__sub {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.sidebtn__go { color: var(--text-faint); font-size: 24px; flex: none; }
+
+/* แถบบอกว่ากำลังอยู่ฝั่งไหน + ปุ่มเปลี่ยน */
+.sidebadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--primary-soft);
+  border-radius: var(--radius-round);
+  padding: 8px 8px 8px 16px;
+  margin-bottom: var(--space-md);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary);
+}
+.sidebadge button {
+  margin-left: auto;
+  border: 0;
+  background: #fff;
+  color: var(--primary);
+  border-radius: var(--radius-round);
+  padding: 5px 14px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.sidebadge button:hover { background: var(--surface-muted); }
+
+/* ============================================================
    กล่องปักหมุดในหน้าสมัครเป็นช่าง
 ============================================================ */
 .pinbox {

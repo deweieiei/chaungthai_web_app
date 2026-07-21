@@ -6,10 +6,38 @@
         <img src="/static/images/logo.png" alt="ChaungThai" width="96" height="96">
       </div>
       <h1 style="font-weight: 800;">ยินดีต้อนรับกลับ</h1>
-      <p class="text-muted">เข้าสู่ระบบเพื่อใช้งาน ChaungThai</p>
+      <p class="text-muted" id="login-lead">เข้าสู่ระบบเพื่อใช้งาน ช่างไทย</p>
     </div>
 
-    <form id="login-form" novalidate style="margin-top: var(--space-xl);">
+    <!-- ขั้นที่ 1: เลือกว่าจะเข้าฝั่งไหน (บัญชีช่างกับผู้ว่าจ้างแยกกันสมบูรณ์) -->
+    <div id="side-picker" style="margin-top: var(--space-xl);">
+      <button type="button" class="sidebtn" data-side="employer">
+        <span class="sidebtn__ico">🔍</span>
+        <span class="sidebtn__body">
+          <span class="sidebtn__title">เข้าสู่ระบบฝั่งผู้ว่าจ้าง</span>
+          <span class="sidebtn__sub">หาช่าง จ้างงาน</span>
+        </span>
+        <span class="sidebtn__go">›</span>
+      </button>
+      <button type="button" class="sidebtn" data-side="worker">
+        <span class="sidebtn__ico">🛠️</span>
+        <span class="sidebtn__body">
+          <span class="sidebtn__title">เข้าสู่ระบบฝั่งช่าง</span>
+          <span class="sidebtn__sub">รับงาน ขึ้นแผนที่</span>
+        </span>
+        <span class="sidebtn__go">›</span>
+      </button>
+      <p class="text-tiny text-muted text-center" style="margin-top: var(--space-md);">
+        อีเมลเดียวกันมีได้ทั้ง 2 บัญชี ใช้รหัสผ่านเดียวกันก็ได้
+      </p>
+    </div>
+
+    <form id="login-form" novalidate style="margin-top: var(--space-xl);" hidden>
+      <div class="sidebadge" id="side-badge">
+        <span id="side-badge-text"></span>
+        <button type="button" id="side-change">เปลี่ยน</button>
+      </div>
+
       <div data-form-error></div>
 
       <div class="field">
@@ -41,7 +69,7 @@
         <a href="/forgot-password" class="text-small">ลืมรหัสผ่าน?</a>
       </div>
 
-      <button type="submit" class="btn btn--primary btn--block btn--lg">เข้าสู่ระบบ</button>
+      <button type="submit" class="btn btn--primary btn--block btn--lg" id="login-submit">เข้าสู่ระบบ</button>
     </form>
 
     <div class="divider">หรือ</div>

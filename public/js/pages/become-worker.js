@@ -3,6 +3,24 @@
   'use strict';
   if (!Auth.guard()) return;
 
+  // หน้านี้ใช้ได้เฉพาะ "บัญชีช่าง" — ฝั่งผู้ว่าจ้างต้องสร้างบัญชีช่างก่อน
+  if (!Auth.isWorkerAccount()) {
+    document.querySelector('.app-shell').innerHTML = `
+      <div class="page-content text-center" style="padding-top: var(--space-xl);">
+        <div style="font-size: 52px;">🛠️</div>
+        <h2 style="font-weight: 800; margin: var(--space-sm) 0 6px;">ต้องใช้บัญชีช่าง</h2>
+        <p class="text-muted">
+          ตอนนี้คุณอยู่ใน <strong>บัญชีผู้ว่าจ้าง</strong><br>
+          ฝั่งช่างเป็นคนละบัญชีกัน แต่ใช้อีเมลและรหัสผ่านเดิมได้
+        </p>
+        <a href="/profile" class="btn btn--primary btn--block btn--lg" style="margin-top: var(--space-lg);">
+          ไปสร้างบัญชีช่าง
+        </a>
+        <a href="/home" class="btn btn--outline btn--block" style="margin-top: var(--space-sm);">กลับหน้าหลัก</a>
+      </div>`;
+    return;
+  }
+
   const form = document.querySelector('.app-shell');
   const submitBtn = document.getElementById('submit-btn');
   const elRadius = document.getElementById('radius');

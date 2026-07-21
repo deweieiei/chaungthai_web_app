@@ -7,10 +7,38 @@
         <img src="/static/images/logo.png" alt="" width="44" height="44">
       </div>
       <h2 style="font-weight: 800; margin-bottom: 2px;">สร้างบัญชีใหม่</h2>
-      <p class="text-small text-muted">เริ่มใช้งาน ChaungThai ฟรี</p>
+      <p class="text-small text-muted" id="reg-lead">เริ่มใช้งาน ช่างไทย ฟรี</p>
     </div>
 
-    <form id="register-form" novalidate>
+    <!-- ขั้นที่ 1: จะสมัครฝั่งไหน -->
+    <div id="side-picker">
+      <button type="button" class="sidebtn" data-side="employer">
+        <span class="sidebtn__ico">🔍</span>
+        <span class="sidebtn__body">
+          <span class="sidebtn__title">สมัครเป็นผู้ว่าจ้าง</span>
+          <span class="sidebtn__sub">หาช่างมาทำงานให้</span>
+        </span>
+        <span class="sidebtn__go">›</span>
+      </button>
+      <button type="button" class="sidebtn" data-side="worker">
+        <span class="sidebtn__ico">🛠️</span>
+        <span class="sidebtn__body">
+          <span class="sidebtn__title">สมัครเป็นช่าง</span>
+          <span class="sidebtn__sub">รับงาน ขึ้นแผนที่ให้คนหาเจอ</span>
+        </span>
+        <span class="sidebtn__go">›</span>
+      </button>
+      <p class="text-tiny text-muted text-center" style="margin-top: var(--space-md);">
+        2 ฝั่งเป็นคนละบัญชีกัน · อีเมลเดียวกันสมัครได้ทั้งคู่ · สมัครอีกฝั่งทีหลังก็ได้
+      </p>
+    </div>
+
+    <form id="register-form" novalidate hidden>
+      <div class="sidebadge" id="side-badge">
+        <span id="side-badge-text"></span>
+        <button type="button" id="side-change">เปลี่ยน</button>
+      </div>
+
       <div data-form-error></div>
 
       <div class="field">
@@ -60,7 +88,7 @@
         <div class="field__error" id="agree-error"></div>
       </div>
 
-      <button type="submit" class="btn btn--primary btn--block btn--lg" style="margin-top: var(--space-md);">สมัครสมาชิก</button>
+      <button type="submit" class="btn btn--primary btn--block btn--lg" id="reg-submit" style="margin-top: var(--space-md);">สมัครสมาชิก</button>
     </form>
 
     <div class="divider">มีบัญชีอยู่แล้ว?</div>

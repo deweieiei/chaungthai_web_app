@@ -43,6 +43,11 @@
   // opts: { workerUserId, workerName, convId? }
   // returns Promise<boolean> — true ถ้าสร้างสำเร็จ
   function openHireModal(opts) {
+    // จ้างงานได้เฉพาะบัญชีผู้ว่าจ้าง — 2 ฝั่งแยกกันสมบูรณ์ (migration 12)
+    if (window.Auth && Auth.isWorkerAccount()) {
+      UI.toast('จ้างงานได้เฉพาะบัญชีผู้ว่าจ้าง — สลับบัญชีที่หน้าเข้าสู่ระบบ', 'warning', 4000);
+      return Promise.resolve(false);
+    }
     return new Promise((resolve) => {
       const today = new Date().toISOString().slice(0, 10);
       const modal = document.createElement('div');

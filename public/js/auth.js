@@ -68,6 +68,18 @@
     return !isTokenExpired(t);
   }
 
+  /**
+   * ฝั่งของบัญชีที่ล็อกอินอยู่: 'employer' | 'worker'
+   * ช่างกับผู้ว่าจ้างเป็นคนละบัญชีกันสมบูรณ์ (migration 12)
+   * token/บัญชีเก่าที่ยังไม่มีค่านี้ ถือเป็น employer
+   */
+  function getAccountType() {
+    const u = getUser();
+    return (u && u.user_account_type) || 'employer';
+  }
+
+  function isWorkerAccount() { return getAccountType() === 'worker'; }
+
   /** ใช้บนหน้าที่ต้อง login — redirect ถ้าไม่ได้ login */
   function guard() {
     if (!isLoggedIn()) {
@@ -101,6 +113,8 @@
     setWorkerId,
     clear,
     isLoggedIn,
+    getAccountType,
+    isWorkerAccount,
     isTokenExpired,
     guard,
     guestOnly,
