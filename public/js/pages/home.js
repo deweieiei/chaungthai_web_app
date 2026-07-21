@@ -22,6 +22,17 @@
   const mapEl = document.getElementById('map');
   const filterLabel = document.getElementById('filter-label');
   const clearBtn = document.getElementById('btn-filter-clear');
+  const loadingEl = document.getElementById('map-loading');
+
+  /**
+   * เปิด/ปิดแถบ "กำลังค้นหา" ใต้ตัวกรอง
+   * เน็ตช้าอาจรอหลายวินาที ถ้าไม่มีอะไรขยับผู้ใช้จะนึกว่าเว็บค้าง
+   */
+  function setLoading(on) {
+    if (loadingEl) loadingEl.hidden = !on;
+    // ระหว่างโหลดอย่าเพิ่งโชว์ "ไม่พบช่าง" — เดี๋ยวกะพริบสลับไปมา
+    if (on) emptyEl.hidden = true;
+  }
 
   let map = null;
   let circle = null;
@@ -52,6 +63,11 @@
     if (!me) return;
     const seq = ++loadSeq;
     countEl.textContent = 'กำลังโหลด…';
+    setLoading(true);
+    if (!listView.hidden) {
+      listView.innerHTML = '<div class="loading-block"><div class="spinner"></div>' +
+        '<div>กำลังค้นหาช่าง…</div></div>';
+    }
 
     try {
       const res = await Api.get('/workers/search', {
@@ -77,9 +93,17 @@
         ? 'ช่างว่าง ' + lastWorkers.length + ' คน (ใกล้สุดในรัศมี ' + far + ' กม.)'
         : 'ไม่พบช่างในรัศมีนี้';
       emptyEl.hidden = lastWorkers.length > 0 || !listView.hidden;
+      setLoading(false);
     } catch (err) {
-      if (seq !== loadSeq) return;
+      if (seq !== loadSeq) return;   // คำขอเก่า — ปล่อยให้คำขอใหม่คุมแถบโหลดเอง
+      setLoading(false);
       countEl.textContent = 'โหลดไม่สำเร็จ';
+      if (!listView.hidden) {
+        listView.innerHTML =
+          '<div class="empty-state"><div class="empty-state__icon">⚠</div>' +
+          '<div class="empty-state__title">ค้นหาไม่สำเร็จ</div>' +
+          '<p class="text-muted text-small">' + UI.escapeHtml(err.message || '') + '</p></div>';
+      }
       console.warn('[home] search failed', err.message);
     }
   }

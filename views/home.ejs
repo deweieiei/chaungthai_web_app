@@ -35,6 +35,15 @@
       </button>
       <button type="button" class="filterbtn filterbtn--clear" id="btn-filter-clear" hidden>ล้างตัวกรอง</button>
     </div>
+
+    <!-- แถบบอกว่ากำลังค้นหา — อยู่ใต้ตัวกรองพอดี คนเน็ตช้าจะได้เห็นว่าระบบทำงานอยู่ -->
+    <div class="maploading" id="map-loading" role="status" aria-live="polite" hidden>
+      <div class="maploading__bar"><span></span></div>
+      <div class="maploading__text">
+        <span class="spinner spinner--sm" aria-hidden="true"></span>
+        กำลังค้นหาช่างรอบตัวคุณ…
+      </div>
+    </div>
   </div>
 
   <!-- แผนที่ / ลิสต์ -->
