@@ -61,9 +61,13 @@
       lastWorkers = res.workers || [];
       CtMap.renderWorkers(map, lastWorkers);
       renderList(lastWorkers);
+      zoomToWorkers();
 
+      const far = lastWorkers.length
+        ? Math.max(...lastWorkers.map((w) => w.distance_km || 0))
+        : 0;
       countEl.textContent = lastWorkers.length
-        ? 'ช่างว่าง ' + lastWorkers.length + ' คน'
+        ? 'ช่างว่าง ' + lastWorkers.length + ' คน (ใกล้สุดในรัศมี ' + far + ' กม.)'
         : 'ไม่พบช่างในรัศมีนี้';
       emptyEl.hidden = lastWorkers.length > 0 || !listView.hidden;
     } catch (err) {
@@ -105,6 +109,24 @@
 
     // ให้วงรัศมีพอดีจอ จะได้เห็นขอบเขตที่ดูได้จริง
     if (fit) map.fitBounds(circle.getBounds(), { padding: [24, 24] });
+  }
+
+  /**
+   * ซูมให้พอดีกับหมุดที่เจอจริง ไม่ใช่พอดีกับวงรัศมี
+   *
+   * ในพื้นที่ที่ช่างหนาแน่น ระบบจะได้ครบ 200 คนตั้งแต่รัศมีไม่กี่ร้อยเมตร
+   * ถ้าซูมตามวงรัศมี 50 กม. หมุดทั้งหมดจะกระจุกเป็นจุดเดียวกลางจอ
+   * ซูมตามหมุดแทน คนใช้จะเห็นช่างกระจายตัวจริง ๆ
+   */
+  function zoomToWorkers() {
+    if (!map || !lastWorkers.length) return;
+    const pts = lastWorkers
+      .filter((w) => w.worker_lat != null && w.worker_lng != null)
+      .map((w) => [Number(w.worker_lat), Number(w.worker_lng)]);
+    if (!pts.length) return;
+
+    pts.push(me);   // รวมตำแหน่งเราด้วย จะได้เห็นว่าใครอยู่รอบเรา
+    map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 16 });
   }
 
   // ------------------------------------------------------------
@@ -222,7 +244,7 @@
   // ------------------------------------------------------------
   radiusEl.addEventListener('change', function () {
     if (radiusKm() > MAX_RADIUS_KM) radiusEl.value = String(MAX_RADIUS_KM);
-    paintArea(true);
+    paintArea(false);     // ไม่ต้อง fit วง เดี๋ยว zoomToWorkers จัดให้
     loadWorkers();
   });
 
